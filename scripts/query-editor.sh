@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Store some basic information about our execution environment
-QUERY_EDITOR=$0
+QUERY_EDITOR=$BASH_SOURCE
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
