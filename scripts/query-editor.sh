@@ -69,7 +69,7 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   echo ${PANE_ID}.$PARENT_PID > $QUERY_EDITOR_BASE/query-editor.${EDITOR_PANE_ID}.editor.pane;
 
   # Put up a nice message up to let the user know we're good to go
-  echo "select 'INITIALIZED' as 'Query Editor';" > $OUTPUT_FILE;
+  echo "select 'INITIALIZED' as "Query Editor";" > $OUTPUT_FILE;
   exit 0;
 fi;
 
