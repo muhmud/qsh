@@ -45,8 +45,6 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
     EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.${PARENT_PID}.query.sql
   fi;
 
-  echo $EDITOR_FILE;
-
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
