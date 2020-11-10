@@ -82,7 +82,7 @@ if [[ -f "$EDITOR_PANE_FILE" ]]; then
   # There may be results currently being displayed in the SQL client with a pager, so in that case
   # we'll need to exit out of the pager before sending over the new query
   if [[ ! -z "$(pstree $CLIENT_PID | grep $QUERY_EDITOR_PAGER)" ]]; then
-    tmux send-keys -t $CLIENT_PANE_ID "C-c";
+    tmux send-keys -t $CLIENT_PANE_ID "C-m";
     tmux send-keys -t $CLIENT_PANE_ID "q";
 
     # If there are a lot of results, sometimes it can take a little while for the pager to exit,
