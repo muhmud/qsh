@@ -11,12 +11,12 @@ QUERY_EDITOR_BASE=/tmp/query-editor
 # The client pane file, which hosts the SQL client session, and the editor pane file, which is
 # running the editor, e.g. vim. Each file will store data related to the opposite pane, so that
 # when that pane executes this script it can easily access the information for it's related pane
-CLIENT_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.client.pane
-EDITOR_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.editor.pane
+CLIENT_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.client.pane
+EDITOR_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.editor.pane
 
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
-QUERY_EDITOR_EXECUTE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.query.execute
+QUERY_EDITOR_EXECUTE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.query.execute
 
 # When invoked from the SQL client, this will contain the file it expects to contain the query
 # to execute. The script can, however, also be involved by the editor, in which case this
@@ -26,7 +26,7 @@ OUTPUT_FILE=$1
 # Query editor options & default values
 QUERY_EDITOR_PAGER=${QUERY_EDITOR_PAGER:-pspg}
 QUERY_EDITOR_COMMAND=${QUERY_EDITOR_COMMAND:-'\e\;'}
-QUERY_EDITOR_SWITCH_ON_EXECUTE=${QUERY_EDITOR_SWITCH_ON_EXECUTE:-1}
+QUERY_EDITOR_SWITCH_ON_EXECUTE=${QUERY_EDITOR_SWITCH_ON_EXECUTE:-0}
 
 # The editor to use
 EDITOR=${VISUAL:-$EDITOR}
@@ -38,12 +38,14 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   mkdir -p $QUERY_EDITOR_BASE;
 
   # Store the parent PID
-  PARENT_PID=$(ps -o ppid= -p $PID);
+  PARENT_PID=$(ps -o ppid= -p $PID | sed 's/ //g');
 
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.$PARENT_PID.query.sql
+    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.${PARENT_PID}.query.sql
   fi;
+
+  echo $EDITOR_FILE;
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
@@ -64,7 +66,7 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   echo $EDITOR_PANE_ID > $CLIENT_PANE_FILE;
 
   # Store this (the SQL client) pane ID and the parent PID in the editor pane file
-  echo ${PANE_ID}.$PARENT_PID > $QUERY_EDITOR_BASE/query-editor.$EDITOR_PANE_ID.editor.pane;
+  echo ${PANE_ID}.$PARENT_PID > $QUERY_EDITOR_BASE/query-editor.${EDITOR_PANE_ID}.editor.pane;
 
   # Put up a nice message up to let the user know we're good to go
   echo "select 'INITIALIZED' as 'Query Editor';" > $OUTPUT_FILE;
@@ -86,15 +88,19 @@ if [[ -f "$EDITOR_PANE_FILE" ]]; then
     tmux send-keys -t $CLIENT_PANE_ID "q";
   fi;
 
-  # Switch over to the SQL client pane when executing a query, if configured to
-  if [[ "$QUERY_EDITOR_SWITCH_ON_EXECUTE" == "1" ]]; then
-    tmux select-pane -t $CLIENT_PANE_ID;
-  fi;
+  # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
+  tmux select-pane -t $CLIENT_PANE_ID;
 
   # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
   # need that to happen so that it can pick up the query file and execute it
   tmux send-keys -t $CLIENT_PANE_ID "$QUERY_EDITOR_COMMAND";
   tmux send-keys -t $CLIENT_PANE_ID "C-m";
+
+  # If configured to NOT switch to the client on query execute, switch back to the editor, after
+  # a small artifical delay to ensure the SQL client pane starts executing the QUERY_EDITOR_COMMAND
+  if [[ "$QUERY_EDITOR_SWITCH_ON_EXECUTE" != "1" ]]; then
+    sleep 0.1 && tmux select-pane -l;
+  fi;
 
   exit 0;
 fi;
