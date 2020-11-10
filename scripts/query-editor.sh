@@ -10,18 +10,17 @@ QUERY_EDITOR_BASE=/tmp/query-editor
 
 # The client pane file, which hosts the SQL client session, and the editor pane file, which is
 # running the editor, e.g. vim. Each file will store data related to the opposite pane, so that
-# when that pane executes this script it can easily access the information for it's related pane.
+# when that pane executes this script it can easily access the information for it's related pane
 CLIENT_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.client.pane
 EDITOR_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.editor.pane
 
-# The default editor file to be used if an explicit $EDITOR_FILE has not been defined, and the
-# query file that will be used to transport the single query batch to be executed to the client.
-DEFAULT_EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.query.sql
+# The query file that will be used to transport the single query batch to be executed to the
+# SQL client
 QUERY_EDITOR_EXECUTE_FILE=$QUERY_EDITOR_BASE/query-editor.$PANE_ID.query.execute
 
 # When invoked from the SQL client, this will contain the file it expects to contain the query
 # to execute. The script can, however, also be involved by the editor, in which case this
-# script parameter will be empty.
+# script parameter will be empty
 OUTPUT_FILE=$1
 
 # Query editor options & default values
@@ -33,19 +32,22 @@ QUERY_EDITOR_SWITCH_ON_EXECUTE=${QUERY_EDITOR_SWITCH_ON_EXECUTE:-1}
 EDITOR=${VISUAL:-$EDITOR}
 
 # If neither pane file exists, it must mean that this is the first time we are running in this
-# window. In that case, perform one-time initialization.
+# window. In that case, perform one-time initialization
 if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   # Ensure the base directory exists
   mkdir -p $QUERY_EDITOR_BASE;
 
+  # Store the parent PID
+  PARENT_PID=$(ps -o ppid= -p $PID);
+
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$DEFAULT_EDITOR_FILE
+    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.$PARENT_PID.query.sql
   fi;
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
-  # again in the same tmux window without issue, and reduces the proliferation of tmp files.
+  # again in the same tmux window without issue, and reduces the proliferation of tmp files
   EDITOR_PANE_ID=$(tmux split-window "export QUERY_EDITOR='$QUERY_EDITOR' \
                                              QUERY_EDITOR_EXECUTE_FILE='$QUERY_EDITOR_EXECUTE_FILE' \
                                              QUERY_EDITOR_PAGER='$QUERY_EDITOR_PAGER' \
@@ -61,8 +63,7 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   # Store the pane for the editor in the client pane file
   echo $EDITOR_PANE_ID > $CLIENT_PANE_FILE;
 
-  # Store this (the SQL client) pane ID and parent PID file in the editor pane file
-  PARENT_PID=$(ps -o ppid= -p $PID);
+  # Store this (the SQL client) pane ID and the parent PID in the editor pane file
   echo ${PANE_ID}.$PARENT_PID > $QUERY_EDITOR_BASE/query-editor.$EDITOR_PANE_ID.editor.pane;
 
   # Put up a nice message up to let the user know we're good to go
@@ -72,14 +73,14 @@ fi;
 
 # If the $EDITOR_PANE_FILE exists, it must mean the editor is running this script, so perform
 # editor-side processing. Normally this be the case when the editor wants to send a query to
-# the SQL client.
+# the SQL client
 if [[ -f "$EDITOR_PANE_FILE" ]]; then
   # Capture details of the SQL client from the editor pane file
   CLIENT_PANE_ID=$(cat $EDITOR_PANE_FILE | cut -d . -f 1);
   CLIENT_PID=$(cat $EDITOR_PANE_FILE | cut -d . -f 2);
 
   # There may be results currently being displayed in the SQL client with a pager, so in that case
-  # we'll need to exit out of the pager before sending over the new query.
+  # we'll need to exit out of the pager before sending over the new query
   if [[ ! -z "$(pstree $CLIENT_PID | grep $QUERY_EDITOR_PAGER)" ]]; then
     tmux send-keys -t $CLIENT_PANE_ID "C-c";
     tmux send-keys -t $CLIENT_PANE_ID "q";
@@ -91,7 +92,7 @@ if [[ -f "$EDITOR_PANE_FILE" ]]; then
   fi;
 
   # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
-  # need that to happen so that it can pick up the query file and execute it.
+  # need that to happen so that it can pick up the query file and execute it
   tmux send-keys -t $CLIENT_PANE_ID "$QUERY_EDITOR_COMMAND";
   tmux send-keys -t $CLIENT_PANE_ID "C-m";
 
@@ -101,6 +102,6 @@ fi;
 # If we are still here, this is being executed by the SQL client, and only in the case where there
 # is a query to be executed, which should be stored in $QUERY_EDITOR_EXECUTE_FILE. All we need to 
 # do is move this file to the location requested by the SQL client, i.e. $OUTPUT_FILE, which will
-# then pick it up and execute it.
+# then pick it up and execute it
 mv $QUERY_EDITOR_EXECUTE_FILE $OUTPUT_FILE > /dev/null 2>&1;
 
