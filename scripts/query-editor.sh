@@ -43,13 +43,18 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
     EDITOR_FILE=$DEFAULT_EDITOR_FILE
   fi;
 
-  # Create the editor pane
+  # Create the editor pane, and pass all options and other values to it. Also ensure that if the
+  # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
+  # again in the same tmux window without issue, and reduces the proliferation of tmp files.
   EDITOR_PANE_ID=$(tmux split-window "export QUERY_EDITOR='$QUERY_EDITOR' \
                                              QUERY_EDITOR_EXECUTE_FILE='$QUERY_EDITOR_EXECUTE_FILE' \
                                              QUERY_EDITOR_PAGER='$QUERY_EDITOR_PAGER' \
                                              QUERY_EDITOR_COMMAND='$QUERY_EDITOR_COMMAND' \
-                                             QUERY_EDITOR_SWITCH_ON_EXECUTE='$QUERY_EDITOR_SWITCH_ON_EXECUTE'; \
-                                      $EDITOR $EDITOR_FILE" \; \
+                                             QUERY_EDITOR_SWITCH_ON_EXECUTE='$QUERY_EDITOR_SWITCH_ON_EXECUTE' \
+                                             PANE_ID=$(tmux display-message -p '#{pane_id}');
+                                      $EDITOR $EDITOR_FILE; \
+                                      rm -f $QUERY_EDITOR_BASE/query-editor.$PANE_ID.editor.pane; \
+                                      rm -f $CLIENT_PANE_FILE;" \; \
                    swap-pane -U \; \
                    display-message -p '#{pane_id}');
 
