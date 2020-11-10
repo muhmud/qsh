@@ -84,6 +84,12 @@ if [[ -f "$EDITOR_PANE_FILE" ]]; then
   if [[ ! -z "$(pstree $CLIENT_PID | grep $QUERY_EDITOR_PAGER)" ]]; then
     tmux send-keys -t $CLIENT_PANE_ID "C-c";
     tmux send-keys -t $CLIENT_PANE_ID "q";
+
+    # If there are a lot of results, sometimes it can take a little while for the pager to exit,
+    # so loop until we can be sure it has stopped
+    while [[ ! -z "$(pstree $CLIENT_PID | grep $QUERY_EDITOR_PAGER)" ]]; do
+      sleep 0.5;
+    done;
   fi;
 
   # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
