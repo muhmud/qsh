@@ -6,17 +6,17 @@ PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
 # Base directory for query editor tmp files
-QUERY_EDITOR_BASE=/tmp/query-editor
+QUERY_EDITOR_BASE=/tmp/qsh/query-editor
 
 # The client pane file, which hosts the SQL client session, and the editor pane file, which is
 # running the editor, e.g. vim. Each file will store data related to the opposite pane, so that
 # when that pane executes this script it can easily access the information for it's related pane
-CLIENT_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.client.pane
-EDITOR_PANE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.editor.pane
+CLIENT_PANE_FILE=$QUERY_EDITOR_BASE/client.${PANE_ID}
+EDITOR_PANE_FILE=$QUERY_EDITOR_BASE/editor.${PANE_ID}
 
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
-QUERY_EDITOR_EXECUTE_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.query.execute
+QUERY_EDITOR_EXECUTE_FILE=$QUERY_EDITOR_BASE/execute.${PANE_ID}.sql
 
 # When invoked from the SQL client, this will contain the file it expects to contain the query
 # to execute. The script can, however, also be involved by the editor, in which case this
@@ -40,7 +40,7 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
 
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.sql
+    EDITOR_FILE=$QUERY_EDITOR_BASE/query.${PANE_ID}.sql
   fi;
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
@@ -62,7 +62,7 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   echo $EDITOR_PANE_ID > $CLIENT_PANE_FILE;
 
   # Store this (the SQL client) pane ID in the editor pane file
-  echo ${PANE_ID} > $QUERY_EDITOR_BASE/query-editor.${EDITOR_PANE_ID}.editor.pane;
+  echo ${PANE_ID} > $QUERY_EDITOR_BASE/editor.${EDITOR_PANE_ID};
 
   # Put up a nice message up to let the user know we're good to go
   echo "select 'INITIALIZED' as \"Query Editor\";" > $OUTPUT_FILE;
