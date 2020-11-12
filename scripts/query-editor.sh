@@ -32,17 +32,15 @@ QUERY_EDITOR_SWITCH_ON_EXECUTE=${QUERY_EDITOR_SWITCH_ON_EXECUTE:-0}
 EDITOR=${VISUAL:-$EDITOR}
 
 # If neither pane file exists, it must mean that this is the first time we are running in this
-# window. In that case, perform one-time initialization
+# window. In that case, perform one-time initialization. We can safely assume this is running from
+# the SQL client pane
 if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   # Ensure the base directory exists
   mkdir -p $QUERY_EDITOR_BASE;
 
-  # Store the parent PID
-  PARENT_PID=$(ps -o ppid= -p $PID | sed 's/ //g');
-
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.${PARENT_PID}.query.sql
+    EDITOR_FILE=$QUERY_EDITOR_BASE/query-editor.${PANE_ID}.sql
   fi;
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
@@ -63,8 +61,8 @@ if [ ! -f "$CLIENT_PANE_FILE" ] && [ ! -f "$EDITOR_PANE_FILE" ]; then
   # Store the pane for the editor in the client pane file
   echo $EDITOR_PANE_ID > $CLIENT_PANE_FILE;
 
-  # Store this (the SQL client) pane ID and the parent PID in the editor pane file
-  echo ${PANE_ID}.$PARENT_PID > $QUERY_EDITOR_BASE/query-editor.${EDITOR_PANE_ID}.editor.pane;
+  # Store this (the SQL client) pane ID in the editor pane file
+  echo ${PANE_ID} > $QUERY_EDITOR_BASE/query-editor.${EDITOR_PANE_ID}.editor.pane;
 
   # Put up a nice message up to let the user know we're good to go
   echo "select 'INITIALIZED' as \"Query Editor\";" > $OUTPUT_FILE;
@@ -76,8 +74,9 @@ fi;
 # the SQL client
 if [[ -f "$EDITOR_PANE_FILE" ]]; then
   # Capture details of the SQL client from the editor pane file
-  CLIENT_PANE_ID=$(cat $EDITOR_PANE_FILE | cut -d . -f 1);
-  CLIENT_PID=$(cat $EDITOR_PANE_FILE | cut -d . -f 2);
+  CLIENT_PANE_ID=$(cat $EDITOR_PANE_FILE);
+  CLIENT_PID=$(tmux list-panes -F '#{pane_id}.#{pane_pid}' | grep "^${CLIENT_PANE_ID}[.]" \
+               | cut -d . -f 2);
 
   # There may be results currently being displayed in the SQL client with a pager, so in that case
   # we'll need to exit out of the pager before sending over the new query
