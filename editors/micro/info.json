@@ -1,0 +1,9 @@
+{
+    "name": "qsh",
+    "description": "micro integration with sql clients",
+    "version": "1.0.0",
+    "require": [
+        "micro >= 2.0.0"
+    ]
+}
+
