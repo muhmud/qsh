@@ -114,3 +114,6 @@ fi;
 # then pick it up and execute it
 mv $QSH_EXECUTE_QUERY $OUTPUT_FILE > /dev/null 2>&1;
 
+# Ensure the modified datetime of the output file looks legit
+touch -m -t "$(date -d '+1 second' +"%Y%m%d%H%M.%S")" $OUTPUT_FILE
+
