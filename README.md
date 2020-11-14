@@ -52,7 +52,7 @@ The following key mapping should be added to `~/.config/micro/bindings.json`:
 From within a tmux session, start your SQL client, i.e. `mysql` or `psql`, using Qsh as the `$EDITOR`. To simplify this, you could setup the following alias:
 
 ```
-alias mysql='EDITOR=~/.qsh/bin/query-editor.sh mysql --pager="pspg"'
+alias mysql='EDITOR=~/.qsh/scripts/qsh mysql --pager="pspg"'
 ```
 
 For postgresql, the `$QSH_EDITOR_COMMAND` option will need changing, as the defaults work for mysql:
