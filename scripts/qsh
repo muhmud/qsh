@@ -32,6 +32,11 @@ QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
 # The editor to use
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
+# Guarantees that the output file will register as changed
+function touch_output {
+  touch -m -t "$(date -d '+1 second' +"%Y%m%d%H%M.%S")" $OUTPUT_FILE;
+}
+
 # If neither pane file exists, it must mean that this is the first time we are running in this
 # window. In that case, perform one-time initialization. We can safely assume this is running from
 # the SQL client pane
@@ -66,7 +71,11 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   echo ${PANE_ID} > $QSH_TMP/editor.${EDITOR_PANE_ID};
 
   # Put up a nice message up to let the user know we're good to go
-  echo "select 'INITIALIZED' as \"Query Editor\";" > $OUTPUT_FILE;
+  echo "select 'INITIALIZED' as qsh;" > $OUTPUT_FILE;
+
+  # Ensure the modified datetime of the output file looks legit
+  touch_output;
+
   exit 0;
 fi;
 
@@ -116,5 +125,5 @@ fi;
 mv $QSH_EXECUTE_QUERY $OUTPUT_FILE > /dev/null 2>&1;
 
 # Ensure the modified datetime of the output file looks legit
-touch -m -t "$(date -d '+1 second' +"%Y%m%d%H%M.%S")" $OUTPUT_FILE
+touch_output;
 

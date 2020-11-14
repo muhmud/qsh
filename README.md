@@ -78,5 +78,5 @@ The following environment variables can be changed if required:
 
 ## Exit
 
-To clean up any temporary files & go back to normal, simply exit the editor. If you exit accidentally, simply trigger the editor again, and it should go back to how it was.
+To clean up any temporary files & go back to normal, simply exit the editor. If you exit accidentally, just trigger the editor again, and it should go back to how it was.
 
