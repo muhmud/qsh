@@ -24,12 +24,12 @@ QSH_EXECUTE_QUERY=$QSH_TMP/execute.${PANE_ID}.sql
 OUTPUT_FILE=$1
 
 # Query editor options & default values
-QSH_PAGER=${QUERY_EDITOR_PAGER:-pspg}
-QSH_EDITOR_COMMAND=${QUERY_EDITOR_COMMAND:-'\e\;'}
-QSH_SWITCH_ON_EXECUTE=${QUERY_EDITOR_SWITCH_ON_EXECUTE:-0}
+QSH_PAGER=${QSH_PAGER:-pspg}
+QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'\e\;'}
+QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 
 # The editor to use
-EDITOR=${VISUAL:-$EDITOR}
+QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
 # If neither pane file exists, it must mean that this is the first time we are running in this
 # window. In that case, perform one-time initialization. We can safely assume this is running from
@@ -52,7 +52,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
                                              QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
                                              QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
                                              PANE_ID=$(tmux display-message -p '#{pane_id}');
-                                      $EDITOR $EDITOR_FILE; \
+                                      $QSH_EDITOR $EDITOR_FILE; \
                                       rm -f $QSH_TMP/editor.$PANE_ID; \
                                       rm -f $CLIENT_PANE;" \; \
                    swap-pane -U \; \
