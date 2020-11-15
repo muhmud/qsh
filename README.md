@@ -78,7 +78,7 @@ The following environment variables can be changed if required:
 
 ## Restrictions
 
-You can't currently get qsh to work when the SQL client is running on a remote server, i.e. within an SSH session. If you do this, consider port forwarding so that you can still run the database client locally.
+You can't currently get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. within an SSH session.. If you need to do this, consider port forwarding so that you can still run the database client locally.
 
 ## Exit
 
