@@ -76,13 +76,9 @@ The following environment variables can be changed if required:
 * `QSH_EDITOR` - The editor you are going to be using, which defaults to `$VISUAL`
 * `QSH_EXECUTE_DELAY` - Artificial delay put in to allow the SQL client to accept new queries; defaults to 0.1 seconds. Shouldn't need changing, unless you experience issues with query execution
 
-## Restrictions
+## Using SSH
 
-You won't be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. within an SSH session.. If you need to do this, do one of the following:
-
-* Connect to the database server using your local client tools installation by specifying host, port, etc.
-* If that is not possible due to network constraints, use port forwarding to get around them
-* Install qsh on the server and run a remote tmux session
+To work with servers over SSH, you should install qsh on your remote host and start tmux in your SSH session. You won't, however, be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. running over an SSH connection.
 
 ## Exit
 
