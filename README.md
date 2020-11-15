@@ -78,7 +78,7 @@ The following environment variables can be changed if required:
 
 ## Using SSH
 
-To work with servers over SSH, you should install qsh on your remote host and start tmux in your SSH session. You won't, however, be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. running over an SSH connection.
+To work with servers over SSH, you should install qsh on your remote host and start tmux in your SSH session. You won't, however, be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. running within an SSH connection.
 
 ## Exit
 
