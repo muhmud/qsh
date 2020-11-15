@@ -78,7 +78,11 @@ The following environment variables can be changed if required:
 
 ## Restrictions
 
-You can't currently get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. within an SSH session.. If you need to do this, consider port forwarding so that you can still run the database client locally.
+You won't be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. within an SSH session.. If you need to do this, do one of the following:
+
+* Connect to the database server using your local client tools installation by specifying host, port, etc.
+* If that is not possible due to network constraints, use port forwarding to get around them
+* Install qsh on the server and run a remote tmux session
 
 ## Exit
 
