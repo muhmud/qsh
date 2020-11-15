@@ -5,7 +5,7 @@ Query SHell - improved database querying for your terminal
 
 ## Pre-requisites
 
-You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes, and which should be available from your package manager.
+You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager.
 
 For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended, however, you could also use `less -SinFX`.
 
