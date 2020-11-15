@@ -49,7 +49,7 @@ The following key mapping should be added to `~/.config/micro/bindings.json`:
 
 ## Usage
 
-From within a tmux session, start your SQL client, i.e. `mysql` or `psql`, using Qsh as the `$EDITOR`. To simplify this, you could setup the following alias:
+From within a tmux session, start your SQL client, i.e. `mysql` or `psql`, using qsh as the `$EDITOR`. To simplify this, you could setup the following alias:
 
 ```
 alias mysql='EDITOR=~/.qsh/scripts/qsh mysql --pager="pspg"'
@@ -75,6 +75,10 @@ The following environment variables can be changed if required:
 * `QSH_SWITCH_ON_EXECUTE` - Whether we should switch to the SQL client pane after triggering the execution of a query. By default, you will remain in the editor
 * `QSH_EDITOR` - The editor you are going to be using, which defaults to `$VISUAL`
 * `QSH_EXECUTE_DELAY` - Artificial delay put in to allow the SQL client to accept new queries; defaults to 0.1 seconds. Shouldn't need changing, unless you experience issues with query execution
+
+## Restrictions
+
+You can't currently get qsh to work when the SQL client is running on a remote server, i.e. within an SSH session. If you do this, consider port forwarding so that you can still run the database client locally.
 
 ## Exit
 
