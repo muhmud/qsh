@@ -70,7 +70,7 @@ Once started, trigger the editor using the command for your environment. For mys
 
 The following environment variables can be changed if required:
 
-* `QSH_PAGER` - The pager you will be using, which defaults to `pspg`. This is used to check whether results are currently being displayed in the SQL client pane, and if they are, then exit out of the pager before sending over the next query
+* `QSH_PAGER` - The pager you will be using, which defaults to `pspg`. This is used to check whether results are currently being displayed in the SQL client pane, and if they are, then qsh will exit out of the pager before sending over the next query
 * `QSH_EDITOR_COMMAND` - The command used by your SQL client to trigger the editor. This can be changed in order to work with other SQL clients not detailed here
 * `QSH_SWITCH_ON_EXECUTE` - Whether we should switch to the SQL client pane after triggering the execution of a query. By default, you will remain in the editor
 * `QSH_EDITOR` - The editor you are going to be using, which defaults to `$VISUAL`
@@ -80,7 +80,7 @@ The following environment variables can be changed if required:
 
 To work with database servers over SSH, you should install qsh on your remote host and start tmux in your SSH session. You won't, however, be able to get qsh to work when the editor is running locally and the SQL client is on a remote server, i.e. running within an SSH connection.
 
-If possible, it might be easier to simply provide host and port connection details to your SQL client and run everything locally.
+If possible, it might be easier to simply provide host and port connection details to the SQL client on your workstation and run everything locally.
 
 ## Exit
 
