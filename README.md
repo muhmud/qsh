@@ -17,39 +17,7 @@ Clone this repository to your home:
 $ git clone git@github.com:muhmud/qsh.git ~/.qsh
 ```
 
-Ensure that `$QSH_EDITOR`, or `$VISUAL`, in your shell environment is set to the editor you want to use. Currently this either be vim or [micro](https://micro-editor.github.io).
-
-### Vim
-
-You can install the vim plugin using `vim-plug` by adding the following line to your `~/.vimrc`:
-
-```
-Plug 'muhmud/qsh', { 'dir': '~/.qsh/editors/vim' }
-```
-
-Add the following key mapping to trigger query execution from the editor:
-
-```
-vnoremap <silent> <F5> :call QshExecuteSelection()<CR>
-```
-
-### Micro
-
-The micro plugin can be installed by executing the following:
-
-```bash
-$ mkdir -p ~/.config/micro/plug && cp -r ~/.qsh/editors/micro ~/.config/micro/plug/qsh
-```
-
-The following key mapping should be added to `~/.config/micro/bindings.json`:
-
-```
-"F5": "lua:qsh.ExecuteSelection"
-```
-
-## Usage
-
-From within a tmux session, start your SQL client, i.e. `mysql` or `psql`, using qsh as the `$EDITOR`. To simplify this, you could setup the following alias:
+Then ensure that qsh is the `$EDITOR` being used by your SQL client. To simplify this, you could setup the following alias:
 
 ```
 alias mysql='EDITOR=~/.qsh/scripts/qsh mysql --pager="pspg"'
@@ -64,7 +32,55 @@ export PSQL_EDITOR=~/.qsh/scripts/qsh
 alias psql='QSH_EDITOR_COMMAND="\\e" psql'
 ```
 
-Once started, trigger the editor using the command for your environment. For mysql, this would be `\e;`, and for psql, `\e`. You should see the editor pane created, where you can now type in queries. A default file is created for you, however, you could open up any other file you need to. To execute a query, simply highlight it and press `F5`. The results should appear in the SQL client pane below.
+Finally, set `$QSH_EDITOR`, or `$VISUAL`, in your shell environment to the editor you want to use. Currently this can either be vim or [micro](https://micro-editor.github.io).
+
+### Vim
+
+You can install the vim plugin using `vim-plug` by adding the following line to your `~/.vimrc`:
+
+```
+Plug 'muhmud/qsh', { 'dir': '~/.qsh/editors/vim' }
+```
+
+Add the following key mapping to trigger query execution from the editor:
+
+```
+nnoremap <silent> <C-Enter> :call QshExecute()<CR>
+vnoremap <silent> <F5> :call QshExecuteSelection()<CR>
+nnoremap <silent> <F7> :call QshExecuteAll()<CR>
+```
+
+You may need to change the keys used based on your terminal environment.
+
+### Micro
+
+The micro plugin can be installed by executing the following:
+
+```bash
+$ mkdir -p ~/.config/micro/plug && cp -r ~/.qsh/editors/micro ~/.config/micro/plug/qsh
+```
+
+The following key mapping should be added to `~/.config/micro/bindings.json`:
+
+```
+"CtrlEnter": "lua:qsh.Execute",
+"F5": "lua:qsh.ExecuteSelection",
+"F7": "lua:qsh.ExecuteAll",
+```
+
+You may need to change the keys used based on your terminal environment.
+
+## Usage
+
+From within a tmux session, start your SQL client, i.e. `mysql` or `psql`.
+
+Once started, trigger the editor using the command for your environment. For mysql, this would be `\e;`, and for psql, `\e`. You should see the editor pane created, where you can now type in queries. A default file is created for you, however, you could open up any other file you need to.
+
+Queries can be executed in a variety of ways:
+
+* Highlight a query and press `F5`, or whichever key you have bound; the selected query will be executed
+* Press `Ctrl+Enter` within the document; the query between the previous semi-colon to the cursor and the following one will be executed
+* Press `F7` to execute all SQL within the current file
 
 ## Options
 
@@ -85,4 +101,5 @@ If possible, it might be easier to simply provide host and port connection detai
 ## Exit
 
 To clean up any temporary files & go back to normal, simply exit the editor. If you exit accidentally, just trigger the editor again, and it should go back to how it was.
+
 
