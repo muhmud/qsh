@@ -71,3 +71,16 @@ function ExecuteSelection(bp)
   end
 end
 
+function ExecuteAll(bp)
+  if bp.Buf:FileType() ~= "sql" then
+    return true
+  end
+
+  -- Write the output file    
+  ioutil.WriteFile(QSH_EXECUTE_QUERY, bp.Buf:Substr(bp.Buf:Start(), bp.Buf:End()), 438)
+
+  -- Call back into qsh
+  micro.InfoBar():Message("Qsh: Sending Script >>>")
+  shell.ExecCommand(QSH)
+end
+

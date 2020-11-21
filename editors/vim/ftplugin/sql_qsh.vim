@@ -86,6 +86,14 @@ function QshExecuteSelection() range
   endif
 endfunction
 
+function QshExecuteAll()
+  " Write to the requested file
+  call writefile(getline(1, line('$')), $QSH_EXECUTE_QUERY)
+
+  echo "Qsh: Sending Script >>>"
+  call system($QSH)
+endfunction
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
