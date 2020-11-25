@@ -22,6 +22,8 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
   if previousLine == 0 && previousPos == 0
     let previousLine = 1
     let previousPos = 1
+  else
+    let previousPos += delimiterLength
   endif
   
   " If the cursor is currently on a delimiter, we will use the current
