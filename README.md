@@ -46,6 +46,7 @@ Add the following key mapping to trigger query execution from the editor:
 
 ```
 nnoremap <silent> <C-Enter> :call QshExecute()<CR>
+nnoremap <silent> <C-S-Enter> :call QshExecute("---", 0)<CR>
 vnoremap <silent> <F5> :call QshExecuteSelection()<CR>
 nnoremap <silent> <F7> :call QshExecuteAll()<CR>
 ```
@@ -63,9 +64,10 @@ $ mkdir -p ~/.config/micro/plug && cp -r ~/.qsh/editors/micro ~/.config/micro/pl
 The following key mapping should be added to `~/.config/micro/bindings.json`:
 
 ```
-"CtrlEnter": "lua:qsh.Execute",
-"F5": "lua:qsh.ExecuteSelection",
-"F7": "lua:qsh.ExecuteAll",
+"CtrlEnter": "command:QshExecute",
+"CtrlShiftEnter": "command:QshExecute '---' 0",
+"F5": "command:QshExecuteSelection",
+"F7": "command:QshExecuteAll",
 ```
 
 You may need to change the keys used based on your terminal environment.
@@ -80,7 +82,30 @@ Queries can be executed in a variety of ways:
 
 * Highlight a query and press `F5`, or whichever key you have bound; the selected query will be executed
 * Press `Ctrl+Enter` within the document; the query between the previous semi-colon to the cursor and the following one will be executed
+* Press `Ctrl+Shift+Enter` within the document; performs a variation of the previous command (see below for details)
 * Press `F7` to execute all SQL within the current file
+
+### QshExecute (Ctrl+Shift+Enter)
+
+The `QshExecute` editor command can take two optional parameters: `delimiter` and `includeDelimiter`. These values are used to change the delimiter that determines the SQL in the file to execute (defaults to `;`) and whether or not the delimiter should be included in the output (defaults to `1`). This makes it easier to work with procedure and function definitions by allowing you to execute them without having to select the whole definition, which can often be lengthy.
+
+This following provides an example:
+
+```sql
+create procedure test(a int)
+begin
+  update test
+    set a = 1;                  /* <- If the cursor is here, Ctrl+Shift+Enter will create procedure test only */
+end;
+
+---                             /* <- This is the customizable delimiter defined in the key binding */
+
+create procedure test2(a int)
+begin
+  update test
+    set a = 2;                  /* <- If the cursor is here, Ctrl+Shift+Enter will create procedure test2 only */
+end;
+```
 
 ## Options
 
@@ -101,5 +126,6 @@ If possible, it might be easier to simply provide host and port connection detai
 ## Exit
 
 To clean up any temporary files & go back to normal, simply exit the editor. If you exit accidentally, just trigger the editor again, and it should go back to how it was.
+
 
 
