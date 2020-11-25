@@ -1,5 +1,6 @@
 
 local micro = import("micro")
+local config = import("micro/config")
 local buffer = import("micro/buffer")
 local shell = import("micro/shell")
 local util = import("micro/util")
@@ -8,14 +9,39 @@ local ioutil = import("io/ioutil")
 local QSH_EXECUTE_QUERY = os.getenv("QSH_EXECUTE_QUERY")
 local QSH = os.getenv("QSH")
 
+------------------------------------------------------------------------------------------------
+-- Plugin Hooks
+------------------------------------------------------------------------------------------------
+
+function init()
+  config.MakeCommand("QshExecute", QshExecute, config.NoComplete)
+  config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
+  config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
+end
+
+------------------------------------------------------------------------------------------------
+-- Commands (where required)
+------------------------------------------------------------------------------------------------
+
+function QshExecute(bp, args)
+  Execute(bp, 
+    #args > 0 and args[1], 
+    #args > 1 and args[2]
+  )
+end
+
+------------------------------------------------------------------------------------------------
+-- Functions
+------------------------------------------------------------------------------------------------
+
 function Execute(bp, delimiter, includeDelimiter)
   if bp.Buf:FileType() ~= "sql" then
-    return true
+    return
   end
 
   -- Parameter defaults
   delimiter = delimiter or ";"
-  includeDelimiter = includeDelimiter or 0
+  includeDelimiter = tonumber(includeDelimiter) or 0
 
   -- Other variable(s)
   local delimiterLength = string.len(delimiter)
@@ -29,21 +55,17 @@ function Execute(bp, delimiter, includeDelimiter)
     local previousDelimiter = bp.Buf:FindNext(delimiter, bp.Buf:Start(), cursorLoc, cursorLoc, false, false)
     local nextDelimiter = bp.Buf:FindNext(delimiter, cursorLoc, bp.Buf:End(), cursorLoc, true, false)
 
-    -- Ensure we don't include the previous instance of the delimiter, unless we didn't find
-    -- the delimiter, so we would start from the beginning of the document
-    local start = previousDelimiter[1]
-    if start.X ~= 0 and start.Y ~= 0 then
-      start = buffer.Loc(start.X + delimiterLength, start.Y);
-    end
-
+    -- Ensure we don't include the previous instance of the delimiter
+    local start = previousDelimiter[2]
+    
     -- If we didn't find the delimiter when searching forward, we will go to the end of the
     -- document. If we did find it, we need to include the delimiter in the output if we are
-    -- configured to
-    local finish = nextDelimiter[1]
+    -- configured to do so
+    local finish = nextDelimiter[2]
     if finish.X == 0 and finish.Y == 0 then
       finish = bp.Buf:End()
-    elseif includeDelimiter == 1 then
-      finish = buffer.Loc(finish.X + delimiterLength, finish.Y)
+    elseif includeDelimiter == 0 then
+      finish = nextDelimiter[1]
     end
 
     -- Write the output file
@@ -57,7 +79,7 @@ end
 
 function ExecuteSelection(bp)
   if bp.Buf:FileType() ~= "sql" then
-    return true
+    return
   end
 
   local cursor = bp.Buf:GetActiveCursor()
@@ -73,7 +95,7 @@ end
 
 function ExecuteAll(bp)
   if bp.Buf:FileType() ~= "sql" then
-    return true
+    return
   end
 
   -- Write the output file    
