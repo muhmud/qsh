@@ -19,10 +19,7 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
   let [ previousLine, previousPos ] = searchpos(a:delimiter, "bnW")
 
   " If there was no previous delimiter, use the start of the document
-  if previousLine == 0 && previousPos == 0
-    let previousLine = 1
-    let previousPos = 1
-  else
+  if !(previousLine == 0 && previousPos == 0)
     let previousPos += delimiterLength
   endif
   
