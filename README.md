@@ -39,7 +39,7 @@ Finally, set `$QSH_EDITOR`, or `$VISUAL`, in your shell environment to the edito
 You can install the vim plugin using `vim-plug` by adding the following line to your `~/.vimrc`:
 
 ```
-Plug 'muhmud/qsh', { 'dir': '~/.qsh/editors/vim' }
+Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 ```
 
 Add the following key mapping to trigger query execution from the editor:
