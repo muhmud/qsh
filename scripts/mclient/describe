@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DESCRIBE_QUERY="\d $(cat $1);"
-
-echo $DESCRIBE_QUERY > $1;
+cat <<EOF > $1
+\d $(cat $1)
+EOF
 
