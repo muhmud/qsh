@@ -1,0 +1,6 @@
+#!/bin/bash
+
+SELECT_QUERY="select * from $(cat $1) limit 1000;"
+
+echo "$SELECT_QUERY" > $1;
+
