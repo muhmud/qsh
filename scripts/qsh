@@ -1,5 +1,7 @@
 #!/bin/bash
 
+QSH_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
 PANE_ID=$(tmux display-message -p '#{pane_id}')
@@ -16,7 +18,7 @@ EDITOR_PANE=$QSH_TMP/editor.${PANE_ID}
 
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
-QSH_EXECUTE_QUERY=$QSH_TMP/execute.${PANE_ID}.sql
+QSH_EXECUTE_QUERY=${QSH_EXECUTE_QUERY:-$QSH_TMP/execute.${PANE_ID}.sql}
 
 # When invoked from the SQL client, this will contain the file it expects to contain the query
 # to execute. The script can, however, also be involved by the editor, in which case this
@@ -57,6 +59,15 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
     EDITOR_FILE=$QSH_TMP/query.${PANE_ID}.sql
   fi;
 
+  # Find the name of the SQL client running qsh (for advanced functionality)
+  QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
+
+  # If we are aware of the editor, look for an env file to use for initialization
+  INIT_ENV="$QSH_BASE/$QSH_SQL_CLIENT/init.env"
+  if [[ -f "$INIT_ENV" ]]; then
+      source "$INIT_ENV";
+  fi;
+
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
@@ -65,6 +76,8 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
                                              QSH_PAGER='$QSH_PAGER' \
                                              QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
                                              QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
+                                             QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' \
+                                             QSH_SQL_CLIENT='$QSH_SQL_CLIENT' \
                                              PANE_ID=$(tmux display-message -p '#{pane_id}');
                                       $QSH_EDITOR $EDITOR_FILE; \
                                       rm -f $QSH_TMP/editor.$PANE_ID; \
@@ -79,7 +92,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   echo ${PANE_ID} > $QSH_TMP/editor.${EDITOR_PANE_ID};
 
   # Put up a nice message up to let the user know we're good to go
-  echo "select 'INITIALIZED' as qsh;" > $OUTPUT_FILE;
+  echo "select 'INITIALIZED' as \"qsh ($QSH_SQL_CLIENT)\";" > $OUTPUT_FILE;
 
   # Ensure the modified datetime of the output file looks legit
   touch_output;
@@ -88,7 +101,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 fi;
 
 # If the $EDITOR_PANE file exists, it must mean the editor is running this script, so perform
-# editor-side processing. Normally this be the case when the editor wants to send a query to
+# editor-side processing. Normally this is the case when the editor wants to send a query to
 # the SQL client
 if [[ -f "$EDITOR_PANE" ]]; then
   # Capture details of the SQL client from the editor pane file
@@ -109,6 +122,29 @@ if [[ -f "$EDITOR_PANE" ]]; then
     done;
   fi;
 
+  # The default operation type
+  OPERATION_TYPE=sql
+
+  # Check for parameters, which are used to override the default 'sql' action and perform alternative
+  # processing, such as executing a script
+  if [[ $# -gt 0 ]]; then
+    OPERATION_TYPE=$1
+  fi;
+
+  case $OPERATION_TYPE in
+    sql)
+      # Default processing, nothing to do
+      ;;
+
+    client-query)
+      # Locate the client query script to call
+      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$2
+
+      # Allow the client script to process the query to be executed
+      $CLIENT_QUERY_SCRIPT $QSH_EXECUTE_QUERY;
+      ;;
+  esac
+
   # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
   tmux select-pane -t $CLIENT_PANE_ID;
 
@@ -127,11 +163,10 @@ if [[ -f "$EDITOR_PANE" ]]; then
 fi;
 
 # If we are still here, this is being executed by the SQL client, and only in the case where there
-# is a query to be executed, which should be stored in $QSH_EXECUTE_QUERY. All we need to 
-# do is move this file to the location requested by the SQL client, i.e. $OUTPUT_FILE, which will
-# then pick it up and execute it
+# is a query file to be processed, which should be stored in $QSH_EXECUTE_QUERY. All we need to do is
+# move the SQL file to the location requested by the SQL client, i.e. $OUTPUT_FILE, which will then pick
+# it up and execute it
 mv $QSH_EXECUTE_QUERY $OUTPUT_FILE > /dev/null 2>&1;
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
-

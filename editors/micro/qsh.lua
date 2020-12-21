@@ -17,17 +17,22 @@ function init()
   config.MakeCommand("QshExecute", QshExecute, config.NoComplete)
   config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
+  config.MakeCommand("QshExecuteClientQuery", QshExecuteClientQuery, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
--- Commands (where required)
+-- Command Adaptors (where required)
 ------------------------------------------------------------------------------------------------
 
 function QshExecute(bp, args)
-  Execute(bp, 
-    #args > 0 and args[1], 
+  Execute(bp,
+    #args > 0 and args[1],
     #args > 1 and args[2]
   )
+end
+
+function QshExecuteClientQuery(bp, args)
+  ExecuteClientQuery(bp, args[1])
 end
 
 ------------------------------------------------------------------------------------------------
@@ -57,7 +62,7 @@ function Execute(bp, delimiter, includeDelimiter)
 
     -- Ensure we don't include the previous instance of the delimiter
     local start = previousDelimiter[2]
-    
+
     -- If we didn't find the delimiter when searching forward, we will go to the end of the
     -- document. If we did find it, we need to include the delimiter in the output if we are
     -- configured to do so
@@ -84,7 +89,7 @@ function ExecuteSelection(bp)
 
   local cursor = bp.Buf:GetActiveCursor()
   if cursor and cursor:HasSelection() then
-    -- Write the output file    
+    -- Write the output file
     ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
 
     -- Call back into qsh
@@ -98,7 +103,7 @@ function ExecuteAll(bp)
     return
   end
 
-  -- Write the output file    
+  -- Write the output file
   ioutil.WriteFile(QSH_EXECUTE_QUERY, bp.Buf:Substr(bp.Buf:Start(), bp.Buf:End()), 438)
 
   -- Call back into qsh
@@ -106,3 +111,18 @@ function ExecuteAll(bp)
   shell.ExecCommand(QSH)
 end
 
+function ExecuteClientQuery(bp, query)
+  if bp.Buf:FileType() ~= "sql" then
+    return
+  end
+
+  local cursor = bp.Buf:GetActiveCursor()
+  if cursor and cursor:HasSelection() then
+    -- Write the output file
+    ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+  end
+
+  -- Call back into qsh
+  micro.InfoBar():Message("Qsh: " .. query .. " >>>")
+  shell.ExecCommand(QSH, "client-query", query);
+end

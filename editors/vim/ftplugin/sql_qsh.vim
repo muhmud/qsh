@@ -93,6 +93,28 @@ function QshExecuteAll()
   call system($QSH)
 endfunction
 
+function QshExecuteClientQuery(query) range
+  echo
+  normal gv
+
+  " Get the start and end of the ranges
+  let rangeStart = getpos("'<")
+  let rangeEnd = getpos("'>")
+
+  if rangeStart != rangeEnd
+    let lines = getline(rangeStart[1], rangeEnd[1])
+
+    let lines[0] = lines[0][rangeStart[2]-1:]
+    let lines[-1] = lines[-1][:rangeEnd[2]-1]
+
+    " Write to the requested file
+    call writefile(lines, $QSH_EXECUTE_QUERY)
+  endif
+
+  echo "Qsh: " . a:query . " >>>"
+  call system("$QSH client-query " . a:query)
+endfunction
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
