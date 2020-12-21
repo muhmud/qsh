@@ -1,0 +1,6 @@
+#!/bin/bash
+
+DESCRIBE_QUERY="desc $(cat $1);"
+
+echo $DESCRIBE_QUERY > $1;
+
