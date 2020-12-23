@@ -18,6 +18,7 @@ function init()
   config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
   config.MakeCommand("QshExecuteClientQuery", QshExecuteClientQuery, config.NoComplete)
+  config.MakeCommand("QshExecuteNamedClientQuery", ExecuteNamedClientQuery, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
@@ -46,10 +47,7 @@ function Execute(bp, delimiter, includeDelimiter)
 
   -- Parameter defaults
   delimiter = delimiter or ";"
-  includeDelimiter = tonumber(includeDelimiter) or 0
-
-  -- Other variable(s)
-  local delimiterLength = string.len(delimiter)
+  includeDelimiter = tonumber(includeDelimiter) or 1
 
   local cursor = bp.Buf:GetActiveCursor()
   if cursor and not cursor:HasSelection() then
@@ -125,4 +123,19 @@ function ExecuteClientQuery(bp, query)
   -- Call back into qsh
   micro.InfoBar():Message("Qsh: " .. query .. " >>>")
   shell.ExecCommand(QSH, "client-query", query);
+end
+
+function ExecuteNamedClientQuery(bp)
+  if bp.Buf:FileType() ~= "sql" then
+    return
+  end
+
+  local cursor = bp.Buf:GetActiveCursor()
+  if cursor and cursor:HasSelection() then
+    local query = util.String(cursor:GetSelection())
+
+    -- Call back into qsh
+    micro.InfoBar():Message("Qsh: " .. query .. " >>>")
+    shell.ExecCommand(QSH, "client-query", query);
+  end
 end

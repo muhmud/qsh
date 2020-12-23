@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select catalog_name as database
+from information_schema.information_schema_catalog_name;
+EOF
+

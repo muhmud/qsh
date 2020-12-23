@@ -34,6 +34,9 @@ QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
 # The editor to use
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
+# Other variable(s)
+QSH_INIT_FILE=".init.sh"
+
 # Guarantees that the output file will register as changed
 function touch_output {
   case $OSTYPE in
@@ -63,9 +66,9 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
 
   # If we are aware of the editor, look for an env file to use for initialization
-  INIT_ENV="$QSH_BASE/$QSH_SQL_CLIENT/init.env"
-  if [[ -f "$INIT_ENV" ]]; then
-      source "$INIT_ENV";
+  QSH_ENV="$QSH_BASE/$QSH_SQL_CLIENT/.qshenv";
+  if [[ -f "$QSH_ENV" ]]; then
+    source "$QSH_ENV";
   fi;
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
@@ -91,8 +94,15 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # Store this (the SQL client) pane ID in the editor pane file
   echo ${PANE_ID} > $QSH_TMP/editor.${EDITOR_PANE_ID};
 
-  # Put up a nice message up to let the user know we're good to go
-  echo "select 'INITIALIZED' as \"qsh ($QSH_SQL_CLIENT)\";" > $OUTPUT_FILE;
+  # If there is a SQL client specific initialization script, use that, otherwise use the generic
+  # version, which should be fine for most database platforms
+  QSH_INIT="$QSH_BASE/$QSH_SQL_CLIENT/$QSH_INIT_FILE";
+  if [[ ! -f "$QSH_INIT" ]]; then
+    QSH_INIT="$QSH_BASE/$QSH_INIT_FILE"
+  fi;
+ 
+  # Initialize qsh and put up a nice message to let the user know we're good to go
+  "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$OUTPUT_FILE";
 
   # Ensure the modified datetime of the output file looks legit
   touch_output;
@@ -138,7 +148,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
     client-query)
       # Locate the client query script to call
-      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$2
+      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$2;
 
       # Allow the client script to process the query to be executed
       $CLIENT_QUERY_SCRIPT $QSH_EXECUTE_QUERY;
@@ -164,9 +174,11 @@ fi;
 
 # If we are still here, this is being executed by the SQL client, and only in the case where there
 # is a query file to be processed, which should be stored in $QSH_EXECUTE_QUERY. All we need to do is
-# move the SQL file to the location requested by the SQL client, i.e. $OUTPUT_FILE, which will then pick
-# it up and execute it
-mv $QSH_EXECUTE_QUERY $OUTPUT_FILE > /dev/null 2>&1;
+# copy the contents of the SQL file to the location requested by the SQL client, i.e. $OUTPUT_FILE,
+# which will then pick it up and execute it. A copy is used instead of move to not invalidate open
+# file handles
+cat $QSH_EXECUTE_QUERY > $OUTPUT_FILE;
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
+

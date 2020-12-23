@@ -1,0 +1,10 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select schema_name
+from INFORMATION_SCHEMA.SCHEMATA
+where schema != 'information_schema'
+and schema not like 'pg[_]%'
+order by 1;
+EOF
+
