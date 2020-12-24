@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cat <<EOF > $1
-select s.name as TABLE_SCHEMA, t.name as TABLE_NAME
+select s.name as TABLE_SCHEMA, t.name as TABLE_NAME, 'BASE TABLE' as TABLE_TYPE
 from sys.tables t
 inner join sys.schemas s on t.schema_id = s.id
 where query is null

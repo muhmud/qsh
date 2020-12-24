@@ -2,8 +2,6 @@
 
 TABLE=$(cat $1)
 
-echo $TABLE > /tmp/qsh.log;
-
 cat <<EOF > $1
 select group_concat(name, ', ') as columns
 from (

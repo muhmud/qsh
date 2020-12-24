@@ -1,6 +1,0 @@
-#!/bin/bash
-
-cat <<EOF > $1
-show tables;
-EOF
-

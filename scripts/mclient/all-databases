@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cat <<EOF > $1
-select value as TABLE_CATALOG
+select value as CATALOG_NAME
 from environment
 where name = 'gdk_dbname';
 EOF

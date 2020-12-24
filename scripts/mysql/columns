@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TABLE=$(cat $1)
+
+cat <<EOF > $1
+select group_concat(COLUMN_NAME order by ORDINAL_POSITION separator ', ') as columns
+from INFORMATION_SCHEMA.COLUMNS
+where table_schema =
+  (case when locate('.', '$TABLE') = 0 then database()
+        else replace(replace(substr('$TABLE', 1, locate('.', '$TABLE') - 1), '\`', ''), '"', '')
+   end)
+and table_name = 
+  (case when locate('.', '$TABLE') = 0 then replace(replace('$TABLE', '\`', ''), '"', '')
+        else replace(replace(substr('$TABLE', locate('.', '$TABLE') + 1), '\`', ''), '"', '')
+   end);
+EOF
+
