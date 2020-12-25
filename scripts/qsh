@@ -100,6 +100,12 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   if [[ ! -f "$QSH_INIT" ]]; then
     QSH_INIT="$QSH_BASE/$QSH_INIT_FILE"
   fi;
+
+  # If we don't have a SQL client directory for the current client, things might work, might not,
+  # and we definitely won't have access to any scripts, etc.
+  if [[ ! -d "$QSH_BASE/$QSH_SQL_CLIENT" ]]; then
+    QSH_SQL_CLIENT="??"
+  fi;
  
   # Initialize qsh and put up a nice message to let the user know we're good to go
   "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$OUTPUT_FILE";
