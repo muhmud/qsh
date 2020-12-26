@@ -153,11 +153,15 @@ if [[ -f "$EDITOR_PANE" ]]; then
       ;;
 
     client-query)
+      # Figure out the script to be called and it's parameters
+      QUERY_SCRIPT=$(echo "$2" | awk -F " " '{ print $1; }');
+      SCRIPT_PARAMETERS=$(echo "$2" | awk -F " " '{ $1=""; print $0; }');
+
       # Locate the client query script to call
-      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$2;
+      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$QUERY_SCRIPT;
 
       # Allow the client script to process the query to be executed
-      $CLIENT_QUERY_SCRIPT $QSH_EXECUTE_QUERY;
+      "$CLIENT_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
       ;;
   esac
 
