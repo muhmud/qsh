@@ -19,6 +19,7 @@ function init()
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
   config.MakeCommand("QshExecuteClientQuery", QshExecuteClientQuery, config.NoComplete)
   config.MakeCommand("QshExecuteNamedClientQuery", ExecuteNamedClientQuery, config.NoComplete)
+  config.MakeCommand("QshInsertClientResult", InsertClientResult, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
@@ -139,3 +140,25 @@ function ExecuteNamedClientQuery(bp)
     shell.ExecCommand(QSH, "client-query", query);
   end
 end
+
+function InsertClientResult(bp)
+  if bp.Buf:FileType() ~= "sql" then
+    return
+  end
+
+  local cursor = bp.Buf:GetActiveCursor()
+  if cursor and cursor:HasSelection() then
+    local query = util.String(cursor:GetSelection())
+
+    -- Call back into qsh
+    micro.InfoBar():Message("Qsh: *" .. query .. " >>>")
+    local result, _ = shell.ExecCommand(QSH, "client-result", query)
+
+    -- Remove the last newline from the result
+    result = string.sub(result, 1, string.len(result) - 1)
+
+    cursor:DeleteSelection();
+    bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
+  end
+end
+

@@ -4,6 +4,7 @@ QSH_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
+QSH_PAGER_COMMAND="$QSH_BASE/qsh-pager"
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
@@ -26,7 +27,6 @@ QSH_EXECUTE_QUERY=${QSH_EXECUTE_QUERY:-$QSH_TMP/execute.${PANE_ID}.sql}
 OUTPUT_FILE=$1
 
 # Query editor options & default values
-QSH_PAGER=${QSH_PAGER:-pspg}
 QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'\e\;'}
 QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
@@ -75,6 +75,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
   EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
+                                             QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' \
                                              QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
                                              QSH_PAGER='$QSH_PAGER' \
                                              QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
@@ -108,7 +109,8 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   fi;
  
   # Initialize qsh and put up a nice message to let the user know we're good to go
-  "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$OUTPUT_FILE";
+  "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$QSH_PAGER_COMMAND" "$QSH_NO_CHANGE_PROMPT" \
+    "$QSH_PROMPT" "$OUTPUT_FILE";
 
   # Ensure the modified datetime of the output file looks legit
   touch_output;
@@ -127,16 +129,25 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
   # There may be results currently being displayed in the SQL client with a pager, so in that case
   # we'll need to exit out of the pager before sending over the new query
-  if [[ ! -z "$(pstree $CLIENT_PID | grep $QSH_PAGER)" ]]; then
+  if [[ ! -z "$(pstree $CLIENT_PID | grep $(basename $QSH_PAGER_COMMAND))" ]]; then
     tmux send-keys -t $CLIENT_PANE_ID "C-m";
     tmux send-keys -t $CLIENT_PANE_ID "q";
 
     # If there are a lot of results, sometimes it can take a little while for the pager to exit,
     # so loop until we can be sure it has stopped
-    while [[ ! -z "$(pstree $CLIENT_PID | grep $QSH_PAGER)" ]]; do
+    while [[ ! -z "$(pstree $CLIENT_PID | grep $(basename $QSH_PAGER_COMMAND))" ]]; do
       sleep 0.5;
     done;
   fi;
+
+  # Files used for result requests, i.e. where we will return results back to the editor, rather
+  # than actually displaying them on the screen. This is used for enhanced query editing.
+  RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
+  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
+  RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+
+  # Delete any previous result request file(s)
+  rm -f "$RESULT_REQUEST" "$RESULT_REQUEST_OUTPUT" "$RESULT_REQUEST_COMPLETE";
 
   # The default operation type
   OPERATION_TYPE=sql
@@ -152,7 +163,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
       # Default processing, nothing to do
       ;;
 
-    client-query)
+    client-*)
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | awk -F " " '{ print $1; }');
       SCRIPT_PARAMETERS=$(echo "$2" | awk -F " " '{ $1=""; print $0; }');
@@ -164,6 +175,13 @@ if [[ -f "$EDITOR_PANE" ]]; then
       "$CLIENT_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
       ;;
   esac
+
+  # If a result request is being processed, create the file that will signal the QSH pager that
+  # this is what we want. When it sees this file, it will output the results to a file, rather
+  # than outputting them on the screen
+  if [[ "$OPERATION_TYPE" == "client-result" ]]; then
+    touch "$RESULT_REQUEST";
+  fi;
 
   # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
   tmux select-pane -t $CLIENT_PANE_ID;
@@ -177,6 +195,17 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # a small artifical delay to ensure the SQL client pane starts executing the $QSH_EDITOR_COMMAND
   if [[ "$QSH_SWITCH_ON_EXECUTE" != "1" ]]; then
     sleep $QSH_EXECUTE_DELAY && tmux select-pane -l;
+  fi;
+
+  # For result requests, we will have to wait until the operation is complete
+  if [[ "$OPERATION_TYPE" == "client-result" ]]; then
+    # Wait for the signal from the pager that we are done
+    while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
+      sleep 0.5;
+    done;
+
+    # Print the output so that it can be picked up by the editor
+    cat "$RESULT_REQUEST_OUTPUT";
   fi;
 
   exit 0;

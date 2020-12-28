@@ -137,6 +137,41 @@ function QshExecuteNamedClientQuery() range
   endif
 endfunction
 
+function QshInsertClientResult() range
+  echo
+  normal gv
+
+  " Get the start and end of the ranges
+  let rangeStart = getpos("'<")
+  let rangeEnd = getpos("'>")
+
+  if rangeStart != rangeEnd
+    let lines = getline(rangeStart[1], rangeEnd[1])
+
+    " Store the parts of the lines that we need to keep
+    let lineStart = strpart(lines[0], 0, rangeStart[2] - 1)
+    let lineEnd = strpart(lines[-1], rangeEnd[2] - 1)
+
+    " Amend the selection so that we only have the selected part
+    let lines[0] = lines[0][rangeStart[2]-1:]
+    let lines[-1] = lines[-1][:rangeEnd[2]-1]
+
+    " Write to the requested file
+    let query = join(lines)
+
+    echo "Qsh: *" . query . " >>>"
+    let result = system("$QSH client-result " . query)
+
+    " Prepare the results
+    let result = split(result, '\n')[:-1]
+    let result[0] = lineStart . result[0]
+    let result[-1] = result[-1] . lineEnd
+
+    exec 'normal "_d'
+    call setline(rangeStart[1], result)
+  endif
+endfunction
+
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
