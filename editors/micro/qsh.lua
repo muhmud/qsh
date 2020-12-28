@@ -17,9 +17,9 @@ function init()
   config.MakeCommand("QshExecute", QshExecute, config.NoComplete)
   config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
-  config.MakeCommand("QshExecuteClientQuery", QshExecuteClientQuery, config.NoComplete)
-  config.MakeCommand("QshExecuteNamedClientQuery", ExecuteNamedClientQuery, config.NoComplete)
-  config.MakeCommand("QshInsertClientResult", InsertClientResult, config.NoComplete)
+  config.MakeCommand("QshExecuteQuery", ExecuteQuery, config.NoComplete)
+  config.MakeCommand("QshExecuteNamedQuery", QshExecuteNamedQuery, config.NoComplete)
+  config.MakeCommand("QshExecuteResultQuery", ExecuteResultQuery, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ function QshExecute(bp, args)
   )
 end
 
-function QshExecuteClientQuery(bp, args)
-  ExecuteClientQuery(bp, args[1])
+function QshExecuteNamedQuery(bp, args)
+  ExecuteNamedQuery(bp, args[1])
 end
 
 ------------------------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ function ExecuteAll(bp)
   shell.ExecCommand(QSH)
 end
 
-function ExecuteClientQuery(bp, query)
+function ExecuteNamedQuery(bp, query)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
@@ -123,10 +123,10 @@ function ExecuteClientQuery(bp, query)
 
   -- Call back into qsh
   micro.InfoBar():Message("Qsh: " .. query .. " >>>")
-  shell.ExecCommand(QSH, "client-query", query);
+  shell.ExecCommand(QSH, "query", query);
 end
 
-function ExecuteNamedClientQuery(bp)
+function ExecuteQuery(bp)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
@@ -137,11 +137,11 @@ function ExecuteNamedClientQuery(bp)
 
     -- Call back into qsh
     micro.InfoBar():Message("Qsh: " .. query .. " >>>")
-    shell.ExecCommand(QSH, "client-query", query);
+    shell.ExecCommand(QSH, "query", query);
   end
 end
 
-function InsertClientResult(bp)
+function ExecuteResultQuery(bp)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
@@ -152,7 +152,7 @@ function InsertClientResult(bp)
 
     -- Call back into qsh
     micro.InfoBar():Message("Qsh: *" .. query .. " >>>")
-    local result, _ = shell.ExecCommand(QSH, "client-result", query)
+    local result, _ = shell.ExecCommand(QSH, "result-query", query)
 
     -- Remove the last newline from the result
     result = string.sub(result, 1, string.len(result) - 1)
@@ -161,4 +161,3 @@ function InsertClientResult(bp)
     bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
   end
 end
-

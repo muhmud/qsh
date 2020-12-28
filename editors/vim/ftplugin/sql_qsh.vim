@@ -93,7 +93,7 @@ function QshExecuteAll()
   call system($QSH)
 endfunction
 
-function QshExecuteClientQuery(query) range
+function QshExecuteNamedQuery(query) range
   echo
   normal gv
 
@@ -112,10 +112,10 @@ function QshExecuteClientQuery(query) range
   endif
 
   echo "Qsh: " . a:query . " >>>"
-  call system("$QSH client-query " . a:query)
+  call system("$QSH query " . a:query)
 endfunction
 
-function QshExecuteNamedClientQuery() range
+function QshExecuteQuery() range
   echo
   normal gv
 
@@ -133,11 +133,11 @@ function QshExecuteNamedClientQuery() range
     let query = join(lines)
 
     echo "Qsh: " . query . " >>>"
-    call system("$QSH client-query " . query)
+    call system("$QSH query " . query)
   endif
 endfunction
 
-function QshInsertClientResult() range
+function QshExecuteResultQuery() range
   echo
   normal gv
 
@@ -160,7 +160,7 @@ function QshInsertClientResult() range
     let query = join(lines)
 
     echo "Qsh: *" . query . " >>>"
-    let result = system("$QSH client-result " . query)
+    let result = system("$QSH result-query " . query)
 
     " Prepare the results
     let result = split(result, '\n')[:-1]

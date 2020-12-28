@@ -1,10 +1,11 @@
 #!/bin/bash
 
-QSH_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_BASE="$QSH_SCRIPTS/.."
 
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
-QSH_PAGER_COMMAND="$QSH_BASE/qsh-pager"
+QSH_PAGER_COMMAND="$QSH_SCRIPTS/qsh-pager"
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
@@ -35,7 +36,7 @@ QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
 # Other variable(s)
-QSH_INIT_FILE=".init.sh"
+QSH_INIT_FILE="init.sh"
 
 # Guarantees that the output file will register as changed
 function touch_output {
@@ -66,7 +67,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
 
   # If we are aware of the editor, look for an env file to use for initialization
-  QSH_ENV="$QSH_BASE/$QSH_SQL_CLIENT/.qshenv";
+  QSH_ENV="$QSH_BASE/clients/$QSH_SQL_CLIENT/.qshenv";
   if [[ -f "$QSH_ENV" ]]; then
     source "$QSH_ENV";
   fi;
@@ -97,14 +98,14 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # If there is a SQL client specific initialization script, use that, otherwise use the generic
   # version, which should be fine for most database platforms
-  QSH_INIT="$QSH_BASE/$QSH_SQL_CLIENT/$QSH_INIT_FILE";
+  QSH_INIT="$QSH_BASE/clients/$QSH_SQL_CLIENT/$QSH_INIT_FILE";
   if [[ ! -f "$QSH_INIT" ]]; then
-    QSH_INIT="$QSH_BASE/$QSH_INIT_FILE"
+    QSH_INIT="$QSH_BASE/clients/$QSH_INIT_FILE"
   fi;
 
   # If we don't have a SQL client directory for the current client, things might work, might not,
   # and we definitely won't have access to any scripts, etc.
-  if [[ ! -d "$QSH_BASE/$QSH_SQL_CLIENT" ]]; then
+  if [[ ! -d "$QSH_BASE/clients/$QSH_SQL_CLIENT" ]]; then
     QSH_SQL_CLIENT="??"
   fi;
  
@@ -149,6 +150,11 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # Delete any previous result request file(s)
   rm -f "$RESULT_REQUEST" "$RESULT_REQUEST_OUTPUT" "$RESULT_REQUEST_COMPLETE";
 
+  # Operation types
+  OPERATION_TYPE_SQL=sql
+  OPERATION_TYPE_QUERY=query
+  OPERATION_TYPE_RESULT_QUERY=result-query
+
   # The default operation type
   OPERATION_TYPE=sql
 
@@ -163,23 +169,23 @@ if [[ -f "$EDITOR_PANE" ]]; then
       # Default processing, nothing to do
       ;;
 
-    client-*)
+    *query)
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | awk -F " " '{ print $1; }');
       SCRIPT_PARAMETERS=$(echo "$2" | awk -F " " '{ $1=""; print $0; }');
 
       # Locate the client query script to call
-      CLIENT_QUERY_SCRIPT=$QSH_BASE/$QSH_SQL_CLIENT/$QUERY_SCRIPT;
+      QSH_QUERY_SCRIPT=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE/$QUERY_SCRIPT;
 
       # Allow the client script to process the query to be executed
-      "$CLIENT_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
+      "$QSH_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
       ;;
   esac
 
   # If a result request is being processed, create the file that will signal the QSH pager that
   # this is what we want. When it sees this file, it will output the results to a file, rather
   # than outputting them on the screen
-  if [[ "$OPERATION_TYPE" == "client-result" ]]; then
+  if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_RESULT_QUERY" ]]; then
     touch "$RESULT_REQUEST";
   fi;
 
@@ -198,7 +204,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
   fi;
 
   # For result requests, we will have to wait until the operation is complete
-  if [[ "$OPERATION_TYPE" == "client-result" ]]; then
+  if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_RESULT_QUERY" ]]; then
     # Wait for the signal from the pager that we are done
     while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
       sleep 0.5;
@@ -220,4 +226,3 @@ cat $QSH_EXECUTE_QUERY > $OUTPUT_FILE;
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
-
