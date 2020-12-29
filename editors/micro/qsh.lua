@@ -147,12 +147,34 @@ function ExecuteResultQuery(bp)
   end
 
   local cursor = bp.Buf:GetActiveCursor()
-  if cursor and cursor:HasSelection() then
-    local query = util.String(cursor:GetSelection())
+  local query = ""
+  if cursor then
+    if not cursor:HasSelection() then
+      -- Store the current position of the cursor
+      local cursorLoc = buffer.Loc(cursor.Loc.X, cursor.Loc.Y)
+      local startOfLine = buffer.Loc(0, cursor.Loc.Y)
+      
+      local location, found = bp.Buf:FindNext("[^( ]+\\s*\\([^()]*\\)", startOfLine, cursorLoc, cursorLoc, false, true)
+      if found then
+        cursor:SetSelectionStart(location[1])
+        cursor:SetSelectionEnd(location[2])
+      end
+    end
 
-    -- Call back into qsh
-    micro.InfoBar():Message("Qsh: *" .. query .. " >>>")
-    local result, _ = shell.ExecCommand(QSH, "result-query", query)
+    query = util.String(cursor:GetSelection())
+  end
+
+  if query ~= "" then
+    -- Display a status message
+    local message = "Qsh: *" .. query .. " >>>"
+    micro.InfoBar():Message(message)
+
+    -- Call back into qsh    
+    local result, err = shell.ExecCommand(QSH, "result-query", query)
+    if err ~= nil then
+      micro.InfoBar():Error(message .. " " .. result)
+      return
+    end
 
     -- Remove the last newline from the result
     result = string.sub(result, 1, string.len(result) - 1)

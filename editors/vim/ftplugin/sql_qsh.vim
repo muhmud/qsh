@@ -145,6 +145,18 @@ function QshExecuteResultQuery() range
   let rangeStart = getpos("'<")
   let rangeEnd = getpos("'>")
 
+  let query = ''
+  if rangeStart == rangeEnd
+    let [ matchLine, matchPos ] = searchpos("[^( ]\\+\\s*([^()]*)", "bsW")
+    
+    if matchLine != 0 
+      let rangeStart = getpos(".")
+
+      let rangeEnd = getpos("''")
+      let rangeEnd[2] = rangeEnd[2] + 1
+    endif
+  endif
+
   if rangeStart != rangeEnd
     let lines = getline(rangeStart[1], rangeEnd[1])
 
@@ -159,16 +171,25 @@ function QshExecuteResultQuery() range
     " Write to the requested file
     let query = join(lines)
 
-    echo "Qsh: *" . query . " >>>"
-    let result = system("$QSH result-query " . query)
+    " Display a message to the user
+    let message = "Qsh: *" . query . " >>>"
+    echo message
 
-    " Prepare the results
-    let result = split(result, '\n')[:-1]
-    let result[0] = lineStart . result[0]
-    let result[-1] = result[-1] . lineEnd
+    let result = system("$QSH result-query " . shellescape(query))
+    if v:shell_error != 0
+      echo message .. " " .. result
+    else
+      " Prepare the results
+      let result = split(result, '\n')[:-1]
+      let result[0] = lineStart . result[0]
+      let result[-1] = result[-1] . lineEnd
 
-    exec 'normal "_d'
-    call setline(rangeStart[1], result)
+      exec 'normal "_d'
+      call setline(rangeStart[1], result)
+
+      " Position the cursor at the end of the snippet
+      call setpos(".", [ rangeStart[0], rangeStart[1] + len(result) - 1, strlen(result[-1]), rangeStart[3] ])
+    endif
   endif
 endfunction
 

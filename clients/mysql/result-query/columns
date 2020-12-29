@@ -1,6 +1,9 @@
 #!/bin/bash
 
-TABLE=$(cat $1)
+TABLE=$2
+
+# Trim leading & trailing whitespace
+TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
 
 cat <<EOF > $1
 select group_concat(COLUMN_NAME order by ORDINAL_POSITION separator ', ') as columns
