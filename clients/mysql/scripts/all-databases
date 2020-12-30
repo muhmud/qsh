@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select SCHEMA_NAME as CATALOG_NAME
+from INFORMATION_SCHEMA.SCHEMATA
+order by 1;
+EOF
+

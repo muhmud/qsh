@@ -1,0 +1,17 @@
+#!/bin/bash
+
+TABLE=$(cat $1)
+
+cat <<EOF > $1
+select string_agg(COLUMN_NAME, ', ' order by ordinal_position) as columns
+from INFORMATION_SCHEMA.COLUMNS
+where (
+  position('.' in '$TABLE') != 0 and
+  TABLE_SCHEMA = replace(substr('$TABLE', 0, position('.' in '$TABLE')), '"', '') and
+  TABLE_NAME = replace(substr('$TABLE', position('.' in '$TABLE') + 1), '"', '')
+) or (
+  position('.' in '$TABLE') = 0 and
+  TABLE_NAME = replace('$TABLE', '"', '')
+);
+EOF
+

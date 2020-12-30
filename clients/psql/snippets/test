@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select 1 as val;
+EOF
+

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_BODY
+from INFORMATION_SCHEMA.ROUTINES
+where ROUTINE_SCHEMA not in ('information_schema', 'pg_catalog')
+order by 1, 2;
+EOF
+
