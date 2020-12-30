@@ -53,11 +53,17 @@ if [[ -f "$RESULT_REQUEST" ]]; then
   # Create some file name we will use to communicate back to the QSH script
   RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+  RESULT_REQUEST_PERFORM_CLEANUP=$(cat "$RESULT_REQUEST");
 
-  # Cleanup the results and put them into the output file
-  cat | awk "$RESULT_REQUEST_CLEANUP" \
-    | sed 's/^|//g; s/|$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
-    > "$RESULT_REQUEST_OUTPUT";
+  if [[ -z "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
+    # Cleanup the results and put them into the output file
+    cat | awk "$RESULT_REQUEST_CLEANUP" \
+        | sed 's/^|//g; s/|$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
+        > "$RESULT_REQUEST_OUTPUT";
+  else
+    # Don't cleanup the results, i.e. return them as is
+    cat > "$RESULT_REQUEST_OUTPUT";
+  fi;
 
   # Signal that we are done
   touch "$RESULT_REQUEST_COMPLETE";

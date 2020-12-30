@@ -1,9 +1,0 @@
-#!/bin/bash
-
-cat <<EOF > $1
-select name as TABLE_SCHEMA
-from sys.schemas
-where system = false
-order by 1
-EOF
-

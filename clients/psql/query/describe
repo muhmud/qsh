@@ -1,6 +1,0 @@
-#!/bin/bash
-
-cat <<EOF > $1
-desc $(cat $1);
-EOF
-

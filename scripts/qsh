@@ -119,7 +119,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   exit 0;
 fi;
 
-# If the $EDITOR_PANE file exists, it must mean the editor is running this script, so perform
+# If the EDITOR_PANE file exists, it must mean the editor is running this script, so perform
 # editor-side processing. Normally this is the case when the editor wants to send a query to
 # the SQL client
 if [[ -f "$EDITOR_PANE" ]]; then
@@ -146,17 +146,22 @@ if [[ -f "$EDITOR_PANE" ]]; then
   RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
   RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+  RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
   # Delete any previous result request file(s)
-  rm -f "$RESULT_REQUEST" "$RESULT_REQUEST_OUTPUT" "$RESULT_REQUEST_COMPLETE";
+  rm -f "$RESULT_REQUEST" \
+    "$RESULT_REQUEST_OUTPUT" \
+    "$RESULT_REQUEST_COMPLETE" \
+    "$RESULT_REQUEST_FINALIZED";
 
   # Operation types
-  OPERATION_TYPE_SQL=sql
   OPERATION_TYPE_QUERY=query
-  OPERATION_TYPE_RESULT_QUERY=result-query
+  OPERATION_TYPE_SCRIPT=scripts
+  OPERATION_TYPE_SNIPPET=snippets
+  OPERATION_TYPE_COMPLETION=completion
 
   # The default operation type
-  OPERATION_TYPE=sql
+  OPERATION_TYPE=$OPERATION_TYPE_QUERY
 
   # Check for parameters, which are used to override the default 'sql' action and perform alternative
   # processing, such as executing a script
@@ -165,79 +170,94 @@ if [[ -f "$EDITOR_PANE" ]]; then
   fi;
 
   case $OPERATION_TYPE in
-    $OPERATION_TYPE_SQL)
+    $OPERATION_TYPE_QUERY)
       # Default processing, nothing to do
       ;;
 
-    $OPERATION_TYPE_QUERY)
+    $OPERATION_TYPE_SCRIPT)
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | awk -F " " '{ print $1; }');
       SCRIPT_PARAMETERS=$(echo "$2" | awk -F " " '{ $1=""; print $0; }');
-
-      # Locate the client query script to call
-      QSH_QUERY_SCRIPT=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE/$QUERY_SCRIPT;
-      if [[ ! -f "$QSH_QUERY_SCRIPT" ]]; then
-        echo "Invalid query script '$RESULT_QUERY_SCRIPT'";
-        exit -1;
-      fi;
-
-      # Allow the client script to process the query to be executed
-      "$QSH_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
-      if [[ $? -ne 0 ]]; then
-        exit -1;
-      fi;
       ;;
 
-    $OPERATION_TYPE_RESULT_QUERY)
+    $OPERATION_TYPE_SNIPPET)
       # Figure out the script to be called and it's parameters
-      RESULT_QUERY_SCRIPT=$(echo "$2" | sed 's/\([^( ]\+\)[[:space:]]*(\(.*\))/\1/g');
+      QUERY_SCRIPT=$(echo "$2" | sed 's/\([^( ]\+\)[[:space:]]*(\(.*\))/\1/g');
       SCRIPT_PARAMETERS=$(echo "$2" | sed 's/[^( ]\+[[:space:]]*(\(.*\))/\1/g');
-
-      # Locate the client query script to call
-      QSH_QUERY_SCRIPT=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE/$RESULT_QUERY_SCRIPT;
-      if [[ ! -f "$QSH_QUERY_SCRIPT" ]]; then
-        echo "Invalid result query script '$RESULT_QUERY_SCRIPT'";
-        exit -1;
-      fi;
-
-      # Allow the client script to process the query to be executed
-      "$QSH_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
-      if [[ $? -ne 0 ]]; then
-        exit -1;
-      fi;
       ;;
-  esac
+  esac;
 
-  # If a result request is being processed, create the file that will signal the QSH pager that
-  # this is what we want. When it sees this file, it will output the results to a file, rather
-  # than outputting them on the screen
-  if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_RESULT_QUERY" ]]; then
-    touch "$RESULT_REQUEST";
+  # If we are running a script or a snippet, make sure the requested script exists
+  if [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SCRIPT" ] || \
+     [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]; then
+    # Locate the client query script to call
+    QSH_QUERY_SCRIPT=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE/$QUERY_SCRIPT;
+    if [[ ! -f "$QSH_QUERY_SCRIPT" ]]; then
+      echo "Invalid script '$QUERY_SCRIPT'";
+      exit -1;
+    fi;
   fi;
 
-  # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
-  tmux select-pane -t $CLIENT_PANE_ID;
+  # This loop is really for the purposes of snippets that need to perform multiple queries in order
+  # to produce a result. For other operation types, the loop will be exited after the first iteration
+  while :
+  do
+    # If a snippet is being processed, check whether the process has now been finalized, which means
+    # that no further processing is required and we can simply return the results to the client.
+    # Otherwise, create the file that will signal the to QSH pager that we require results returned
+    # to use. When it sees this file, it will output the results to a file, rather than to the screen
+    case $OPERATION_TYPE in
+      $OPERATION_TYPE_SCRIPT)
+        # For scripts, execute the requested script file
+        "$QSH_QUERY_SCRIPT" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
+        if [[ $? -ne 0 ]]; then
+          exit -1;
+        fi;
+        ;;
 
-  # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
-  # need that to happen so that it can pick up the query file and execute it
-  tmux send-keys -t $CLIENT_PANE_ID "$QSH_EDITOR_COMMAND";
-  tmux send-keys -t $CLIENT_PANE_ID "C-m";
+      $OPERATION_TYPE_SNIPPET)
+        if [[ -f "$RESULT_REQUEST_FINALIZED" ]]; then
+          # Print the output so that it can be picked up by the editor
+          cat "$RESULT_REQUEST_OUTPUT";
+          break;
+        fi;
+
+        # We have more data to process, so ensure the pager returns results to use
+        touch "$RESULT_REQUEST";
+        rm -f "$RESULT_REQUEST_COMPLETE";
+
+        # For snippets, execute the requested script file, providing access to the result request 
+        "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
+        if [[ $? -ne 0 ]]; then
+          exit -1;
+        fi;
+        ;;
+    esac;
+
+    # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
+    tmux select-pane -t $CLIENT_PANE_ID;
+
+    # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
+    # need that to happen so that it can pick up the query file and execute it
+    tmux send-keys -t $CLIENT_PANE_ID "$QSH_EDITOR_COMMAND";
+    tmux send-keys -t $CLIENT_PANE_ID "C-m";
+
+    # For snippets, we will have to wait until the operation is complete, and potentially loop again
+    if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]]; then
+      # Wait for the signal from the pager that we are done
+      while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
+        sleep 0.5;
+      done;
+    else
+      # Looping is not required for other operation types
+      break;
+    fi;
+  done;
 
   # If configured to NOT switch to the client on query execute, switch back to the editor, after
   # a small artifical delay to ensure the SQL client pane starts executing the $QSH_EDITOR_COMMAND
   if [[ "$QSH_SWITCH_ON_EXECUTE" != "1" ]]; then
     sleep $QSH_EXECUTE_DELAY && tmux select-pane -l;
-  fi;
-
-  # For result requests, we will have to wait until the operation is complete
-  if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_RESULT_QUERY" ]]; then
-    # Wait for the signal from the pager that we are done
-    while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
-      sleep 0.5;
-    done;
-
-    # Print the output so that it can be picked up by the editor
-    cat "$RESULT_REQUEST_OUTPUT";
   fi;
 
   exit 0;
@@ -252,3 +272,4 @@ cat $QSH_EXECUTE_QUERY > $OUTPUT_FILE;
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
+

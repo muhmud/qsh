@@ -17,9 +17,9 @@ function init()
   config.MakeCommand("QshExecute", QshExecute, config.NoComplete)
   config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
-  config.MakeCommand("QshExecuteQuery", ExecuteQuery, config.NoComplete)
-  config.MakeCommand("QshExecuteNamedQuery", QshExecuteNamedQuery, config.NoComplete)
-  config.MakeCommand("QshExecuteResultQuery", ExecuteResultQuery, config.NoComplete)
+  config.MakeCommand("QshExecuteScript", ExecuteScript, config.NoComplete)
+  config.MakeCommand("QshExecuteNamedScript", QshExecuteNamedScript, config.NoComplete)
+  config.MakeCommand("QshExecuteSnippet", ExecuteSnippet, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
@@ -33,8 +33,8 @@ function QshExecute(bp, args)
   )
 end
 
-function QshExecuteNamedQuery(bp, args)
-  ExecuteNamedQuery(bp, args[1])
+function QshExecuteNamedScript(bp, args)
+  ExecuteNamedScript(bp, args[1])
 end
 
 ------------------------------------------------------------------------------------------------
@@ -106,11 +106,11 @@ function ExecuteAll(bp)
   ioutil.WriteFile(QSH_EXECUTE_QUERY, bp.Buf:Substr(bp.Buf:Start(), bp.Buf:End()), 438)
 
   -- Call back into qsh
-  micro.InfoBar():Message("Qsh: Sending Script >>>")
+  micro.InfoBar():Message("Qsh: Sending >>>")
   shell.ExecCommand(QSH)
 end
 
-function ExecuteNamedQuery(bp, query)
+function ExecuteNamedScript(bp, script)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
@@ -122,32 +122,32 @@ function ExecuteNamedQuery(bp, query)
   end
 
   -- Call back into qsh
-  micro.InfoBar():Message("Qsh: " .. query .. " >>>")
-  shell.ExecCommand(QSH, "query", query);
+  micro.InfoBar():Message("Qsh: " .. script .. " >>>")
+  shell.ExecCommand(QSH, "scripts", script);
 end
 
-function ExecuteQuery(bp)
+function ExecuteScript(bp)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
 
   local cursor = bp.Buf:GetActiveCursor()
   if cursor and cursor:HasSelection() then
-    local query = util.String(cursor:GetSelection())
+    local script = util.String(cursor:GetSelection())
 
     -- Call back into qsh
-    micro.InfoBar():Message("Qsh: " .. query .. " >>>")
-    shell.ExecCommand(QSH, "query", query);
+    micro.InfoBar():Message("Qsh: " .. script .. " >>>")
+    shell.ExecCommand(QSH, "scripts", script);
   end
 end
 
-function ExecuteResultQuery(bp)
+function ExecuteSnippet(bp)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
 
   local cursor = bp.Buf:GetActiveCursor()
-  local query = ""
+  local snippet = ""
   if cursor then
     if not cursor:HasSelection() then
       -- Store the current position of the cursor
@@ -161,16 +161,16 @@ function ExecuteResultQuery(bp)
       end
     end
 
-    query = util.String(cursor:GetSelection())
+    snippet = util.String(cursor:GetSelection())
   end
 
-  if query ~= "" then
+  if snippet ~= "" then
     -- Display a status message
-    local message = "Qsh: *" .. query .. " >>>"
+    local message = "Qsh: *" .. snippet .. " >>>"
     micro.InfoBar():Message(message)
 
     -- Call back into qsh    
-    local result, err = shell.ExecCommand(QSH, "result-query", query)
+    local result, err = shell.ExecCommand(QSH, "snippets", snippet)
     if err ~= nil then
       micro.InfoBar():Error(message .. " " .. result)
       return
@@ -183,3 +183,4 @@ function ExecuteResultQuery(bp)
     bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
   end
 end
+

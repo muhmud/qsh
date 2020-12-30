@@ -93,7 +93,7 @@ function QshExecuteAll()
   call system($QSH)
 endfunction
 
-function QshExecuteNamedQuery(query) range
+function QshExecuteNamedScript(script) range
   echo
   normal gv
 
@@ -111,11 +111,11 @@ function QshExecuteNamedQuery(query) range
     call writefile(lines, $QSH_EXECUTE_QUERY)
   endif
 
-  echo "Qsh: " . a:query . " >>>"
-  call system("$QSH query " . a:query)
+  echo "Qsh: " . a:script . " >>>"
+  call system("$QSH scripts " . a:query)
 endfunction
 
-function QshExecuteQuery() range
+function QshExecuteScript() range
   echo
   normal gv
 
@@ -130,14 +130,14 @@ function QshExecuteQuery() range
     let lines[-1] = lines[-1][:rangeEnd[2]-1]
 
     " Write to the requested file
-    let query = join(lines)
+    let script = join(lines)
 
-    echo "Qsh: " . query . " >>>"
-    call system("$QSH query " . query)
+    echo "Qsh: " . script . " >>>"
+    call system("$QSH scripts " . query)
   endif
 endfunction
 
-function QshExecuteResultQuery() range
+function QshExecuteSnippet() range
   echo
   normal gv
 
@@ -145,7 +145,7 @@ function QshExecuteResultQuery() range
   let rangeStart = getpos("'<")
   let rangeEnd = getpos("'>")
 
-  let query = ''
+  let snippet = ''
   if rangeStart == rangeEnd
     let [ matchLine, matchPos ] = searchpos("[^( ]\\+\\s*([^()]*)", "bsW")
     
@@ -169,13 +169,13 @@ function QshExecuteResultQuery() range
     let lines[-1] = lines[-1][:rangeEnd[2]-1]
 
     " Write to the requested file
-    let query = join(lines)
+    let snippet = join(lines)
 
     " Display a message to the user
-    let message = "Qsh: *" . query . " >>>"
+    let message = "Qsh: *" . snippet . " >>>"
     echo message
 
-    let result = system("$QSH result-query " . shellescape(query))
+    let result = system("$QSH snippets " . shellescape(query))
     if v:shell_error != 0
       echo message .. " " .. result
     else
