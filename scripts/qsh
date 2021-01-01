@@ -149,10 +149,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
   RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
   # Delete any previous result request file(s)
-  rm -f "$RESULT_REQUEST" \
-    "$RESULT_REQUEST_OUTPUT" \
-    "$RESULT_REQUEST_COMPLETE" \
-    "$RESULT_REQUEST_FINALIZED";
+  rm -f ${RESULT_REQUEST}*;
 
   # Operation types
   OPERATION_TYPE_QUERY=query
@@ -198,6 +195,9 @@ if [[ -f "$EDITOR_PANE" ]]; then
     fi;
   fi;
 
+  # Record whether we end up switching panes or not
+  PANE_SWITCHED=
+
   # This loop is really for the purposes of snippets that need to perform multiple queries in order
   # to produce a result. For other operation types, the loop will be exited after the first iteration
   while :
@@ -231,11 +231,21 @@ if [[ -f "$EDITOR_PANE" ]]; then
         if [[ $? -ne 0 ]]; then
           exit -1;
         fi;
+
+        # Check again to see if the result has been finalized
+        if [[ -f "$RESULT_REQUEST_FINALIZED" ]]; then
+          # Print the output so that it can be picked up by the editor
+          cat "$RESULT_REQUEST_OUTPUT";
+          break;
+        fi;
         ;;
     esac;
 
-    # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
-    tmux select-pane -t $CLIENT_PANE_ID;
+    if [[ -z "$PANE_SWITCHED" ]]; then
+      # Switch over to the SQL client pane when executing a query, to ensure it becomes visible
+      tmux select-pane -t $CLIENT_PANE_ID;
+      PANE_SWITCHED=1
+    fi;
 
     # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
     # need that to happen so that it can pick up the query file and execute it
@@ -246,7 +256,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
     if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]]; then
       # Wait for the signal from the pager that we are done
       while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
-        sleep 0.5;
+        sleep 0.2;
       done;
     else
       # Looping is not required for other operation types
@@ -256,7 +266,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
   # If configured to NOT switch to the client on query execute, switch back to the editor, after
   # a small artifical delay to ensure the SQL client pane starts executing the $QSH_EDITOR_COMMAND
-  if [[ "$QSH_SWITCH_ON_EXECUTE" != "1" ]]; then
+  if [ "$QSH_SWITCH_ON_EXECUTE" != "1" ] && [ ! -z "$PANE_SWITCHED" ]; then
     sleep $QSH_EXECUTE_DELAY && tmux select-pane -l;
   fi;
 
