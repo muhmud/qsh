@@ -2,7 +2,7 @@
 
 RESULT_REQUEST=$1
 QUERY_FILE=$2
-TABLE=$3
+FUNCTION=$3
 
 RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
 RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
@@ -15,7 +15,7 @@ if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
   TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
 
   cat <<EOF > $QUERY_FILE
-  show create table $TABLE;
+  show create function $FUNCTION;
 EOF
 
   # Record that we have completed Stage 1
@@ -23,8 +23,8 @@ EOF
 else
   # Stage 2: cleanup the output and return it
   cat "$RESULT_REQUEST_OUTPUT" \
-    | sed 's/^\([^|)]\)/  \1/g; s/^)\(.*\)/)\1;/g' \
-    | sed 's/^[^|]\+ | \(CREATE TABLE\)/\1/g' \
+    | sed 's/^[^|]\+ | [^|]\+ | \(CREATE .* FUNCTION\)/\1/g' \
+    | sed 's/^  //g; s/ | [^|]\+ | [^|]\+ | [^|]\+$/;/g' \
     > "$RESULT_REQUEST_STAGE_ONE";
 
   # Put the results into the output file
