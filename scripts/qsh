@@ -21,6 +21,7 @@ EDITOR_PANE=$QSH_TMP/editor.${PANE_ID}
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
 QSH_EXECUTE_QUERY=${QSH_EXECUTE_QUERY:-$QSH_TMP/execute.${PANE_ID}.sql}
+QSH_EXECUTE_QUERY_CURSOR=${QSH_EXECUTE_QUERY_CURSOR:-$QSH_TMP/execute.${PANE_ID}.sql.cursor}
 
 # When invoked from the SQL client, this will contain the file it expects to contain the query
 # to execute. The script can, however, also be involved by the editor, in which case this
@@ -78,6 +79,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
                                              QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' \
                                              QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
+                                             QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' \
                                              QSH_PAGER='$QSH_PAGER' \
                                              QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
                                              QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
@@ -144,7 +146,9 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # Files used for result requests, i.e. where we will return results back to the editor, rather
   # than actually displaying them on the screen. This is used for enhanced query editing.
   RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
-  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
+  RESULT_REQUEST_CONTEXT="${RESULT_REQUEST}.context";
+  RESULT_REQUEST_CURSOR="${RESULT_REQUEST}.cursor";
+  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
   RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
@@ -181,6 +185,10 @@ if [[ -f "$EDITOR_PANE" ]]; then
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | sed 's/\([^( ]\+\)[[:space:]]*(\(.*\))/\1/g');
       SCRIPT_PARAMETERS=$(echo "$2" | sed 's/[^( ]\+[[:space:]]*(\(.*\))/\1/g');
+
+      # Copy in other files if they exist
+      [[ -f "$QSH_EXECUTE_QUERY" ]] && cp "$QSH_EXECUTE_QUERY" "$RESULT_REQUEST_CONTEXT";
+      [[ -f "$QSH_EXECUTE_QUERY_CURSOR" ]] && cp "$QSH_EXECUTE_QUERY_CURSOR" "$RESULT_REQUEST_CURSOR";
       ;;
   esac;
 
@@ -278,8 +286,10 @@ fi;
 # copy the contents of the SQL file to the location requested by the SQL client, i.e. $OUTPUT_FILE,
 # which will then pick it up and execute it. A copy is used instead of move to not invalidate open
 # file handles
-cat $QSH_EXECUTE_QUERY > $OUTPUT_FILE;
+cat "$QSH_EXECUTE_QUERY" > "$OUTPUT_FILE";
+
+# Remove qsh files
+rm -f "$QSH_EXECUTE_QUERY" "$QSH_EXECUTE_QUERY_CURSOR";
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
-
