@@ -51,7 +51,7 @@ fi;
 
 if [[ -f "$RESULT_REQUEST" ]]; then
   # Create some file name we will use to communicate back to the QSH script
-  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.data";
+  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
   RESULT_REQUEST_PERFORM_CLEANUP=$(cat "$RESULT_REQUEST");
 

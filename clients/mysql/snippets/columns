@@ -27,3 +27,4 @@ else
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";  
 fi;
+
