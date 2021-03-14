@@ -1,0 +1,32 @@
+#!/bin/bash
+
+function usage() {
+  echo "";
+  echo "qsh-reg - register a connection to a database server";
+  echo "";
+  echo "usage: qsh-reg <name> <invocation>";
+  echo "";
+  exit 0;
+}
+
+
+NAME=$1
+if [[ -z "$NAME" ]]; then
+  usage;
+fi;
+
+CLIENT=$2
+if [[ -z "$CLIENT" ]]; then
+  usage;
+fi;
+
+shift 1;
+INVOCATION="$*"
+
+cat <<EOF 
+{
+  "client": "$CLIENT",
+  "invocation": "$INVOCATION"
+}
+EOF
+

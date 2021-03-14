@@ -1,0 +1,35 @@
+#!/bin/bash
+
+function usage() {
+  echo "";
+  echo "qsh-regp - register a connection to a database server with password";
+  echo "";
+  echo "usage: qsh-regp <name> <invocation>";
+  echo "";
+  exit 0;
+}
+
+
+NAME=$1
+if [[ -z "$NAME" ]]; then
+  usage;
+fi;
+
+CLIENT=$2
+if [[ -z "$CLIENT" ]]; then
+  usage;
+fi;
+
+shift 1;
+INVOCATION="$*"
+
+read -sp 'Password: ' PASSWORD;
+
+cat <<EOF 
+{
+  "client": "$CLIENT",
+  "invocation": "$INVOCATION",
+  "password": "$PASSWORD"
+}
+EOF
+
