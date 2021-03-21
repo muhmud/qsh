@@ -3,13 +3,22 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
+if [[ "$PASSWORD" != "null" ]]; then
+  USE_PASSWORD="-W";
+fi;
+
 QSH_EDITOR=EDITOR=$QSH_SCRIPTS/qsh
-QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
+QSH_PROMPT="--set=PROMPT1='$(cat $QSH_CLIENTS/psql/qsh-prompt)'"
+QSH_PAGER="PAGER=$QSH_SCRIPTS/qsh-pager"
+
+if [[ "$PROMPT" == "false" ]]; then
+  unset QSH_PROMPT;
+fi;
 
 if [[ "$VANILLA" == "true" ]]; then
   unset QSH_EDITOR QSH_PROMPT QSH_PAGER;
 fi;
 
-QSH_INVOCATION="$QSH_EDITOR DOTMONETDB_FILE= '$CLIENT' $INVOCATION $QSH_PAGER";
-PASSWORD_PROMPT="password:";
+QSH_INVOCATION="$QSH_EDITOR $QSH_PAGER '$CLIENT' $INVOCATION $USE_PASSWORD $QSH_PROMPT";
+PASSWORD_PROMPT="Password: ";
 
