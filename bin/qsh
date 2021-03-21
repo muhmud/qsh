@@ -1,0 +1,62 @@
+#!/bin/bash
+
+QSH_BASE=~/.qsh
+QSH_CLIENTS=$QSH_BASE/clients
+QSH_CONNECTIONS=$QSH_BASE/.connections
+
+CONNECTION=$1
+if [[ -z "$CONNECTION" ]]; then
+  echo "usage: qsh <connection> | <invocation>";
+  echo;
+  tree "$QSH_CONNECTIONS";
+  exit 0;
+fi;
+
+if [[ "$CONNECTION" != *.json ]]; then
+  CONNECTION="${CONNECTION}.json";
+fi;
+
+CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION
+if [ ! -f "$CONNECTION_FILE" ] || [ $# -gt 1 ]; then
+  # Try to perform a direct invocation
+  CLIENT=$1
+  shift 1; INVOCATION="$*"
+  PASSWORD=null
+
+  CLIENT_NAME=$(basename "$CLIENT");
+  if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+    echo "invalid connection/invocation";
+    exit -1;
+  fi;
+
+  source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
+
+  # Invoke the client
+  /bin/sh -c "$QSH_INVOCATION";
+  exit 0;
+fi;
+
+CONNECTION_DATA=$(cat "$CONNECTION_FILE");
+
+CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
+INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
+PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
+PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.password')";
+PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
+VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
+
+if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
+  echo "invalid connection definition";
+  exit -1;
+fi;
+
+CLIENT_NAME=$(basename "$CLIENT");
+source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";
+
+if [[ "$PASSWORD" == "null" ]]; then
+  /bin/sh -c "$QSH_INVOCATION";
+  exit 0;
+fi;
+
+"$QSH_BASE/scripts/qsh-go.exp" "$QSH_INVOCATION" "$PASSWORD_PROMPT" "$PASSWORD";
+

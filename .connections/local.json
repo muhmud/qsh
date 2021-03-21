@@ -1,0 +1,6 @@
+{
+  "client": "mysql",
+  "invocation": "-uroot",
+  "prompt": true,
+  "vanilla": false
+}

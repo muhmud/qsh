@@ -1,0 +1,6 @@
+{
+  "client": "mysql",
+  "invocation": "-hops6-db.production.ops.aws -uroot -p -A",
+  "password": "waaccnP6Urr51ec_"
+}
+

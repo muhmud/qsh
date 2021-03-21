@@ -1,35 +1,84 @@
 #!/bin/bash
 
+QSH_BASE=~/.qsh
+QSH_CONNECTIONS=$QSH_BASE/.connections
+QSH_CLIENTS=$QSH_BASE/clients
+
+# Make sure we have jq installed
+JQ=$(which jq 2>/dev/null);
+if [[ "$?" -ne 0 ]]; then
+  echo "could not find jq";
+  exit -1;
+fi;
+
 function usage() {
-  echo "";
-  echo "qsh-regp - register a connection to a database server with password";
-  echo "";
-  echo "usage: qsh-regp <name> <invocation>";
-  echo "";
+  echo "usage: qsh-reg <name> [-pxsv] <invocation>";
   exit 0;
 }
 
-
 NAME=$1
-if [[ -z "$NAME" ]]; then
-  usage;
-fi;
+[[ -z "$NAME" ]] && usage;
+[[ "$NAME" =~ ^-.* ]] && usage;
 
-CLIENT=$2
-if [[ -z "$CLIENT" ]]; then
-  usage;
+PROMPT=true
+VANILLA=false
+
+shift 1;
+while getopts "pxsv" arg; do
+  case $arg in
+    p)
+      USING_PASSWORD=1
+      ;;
+    x)
+      OVERWRITE_EXISTING=1
+      ;;
+    s)
+      PROMPT=false
+      ;;
+    v)
+      VANILLA=true
+      ;;
+  esac
+done
+
+# Move past the options
+shift $(expr $OPTIND - 1);
+
+CLIENT=$1
+[[ -z "$CLIENT" ]] && usage;
+
+CLIENT_NAME=$(basename "$CLIENT");
+if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+  echo "unknown client '$CLIENT_NAME'";
+  exit -1;
 fi;
 
 shift 1;
 INVOCATION="$*"
 
-read -sp 'Password: ' PASSWORD;
+CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
+if [ -f "$CONNECTION_FILE" ] && [ -z "$OVERWRITE_EXISTING" ]; then
+  echo "connection exists, use -x to overwrite";
+  exit -1;
+fi;
 
-cat <<EOF 
+if [[ ! -z "$USING_PASSWORD" ]]; then
+  read -sp 'Password: ' PASSWORD;
+  echo;
+fi;
+
+# Ensure the destination directory exists
+mkdir -p "$(dirname "$CONNECTION_FILE")";
+
+cat <<EOF | jq > "$CONNECTION_FILE"
 {
   "client": "$CLIENT",
   "invocation": "$INVOCATION",
-  "password": "$PASSWORD"
+  "prompt": $PROMPT,
+  "vanilla": $VANILLA
+  $([[ ! -z "$USING_PASSWORD" ]] && echo ", \"password\": \"$PASSWORD\"")
 }
 EOF
+
+chmod 0600 "$CONNECTION_FILE";
 
