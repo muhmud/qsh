@@ -8,7 +8,7 @@ CONNECTION=$1
 if [[ -z "$CONNECTION" ]]; then
   echo "usage: qsh <connection> | <invocation>";
   echo;
-  tree "$QSH_CONNECTIONS";
+  tree --prune --noreport "$QSH_CONNECTIONS";
   exit 0;
 fi;
 
