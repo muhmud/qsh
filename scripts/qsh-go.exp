@@ -1,0 +1,23 @@
+#!/bin/expect -f
+
+set send_slow {1 .1}
+proc send {ignore arg} {
+  sleep .1
+  exp_send -s -- $arg
+}
+
+set qsh_invocation [lindex $argv 0];
+set password_prompt [lindex $argv 1];
+set password [lindex $argv 2];
+
+set timeout -1
+log_user 0
+spawn /bin/sh -c "$qsh_invocation"
+match_max 100000
+expect -exact "$password_prompt"
+send -- "$password\r"
+
+interact {
+  -o eof {exit}
+}
+

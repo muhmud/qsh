@@ -1,0 +1,44 @@
+#!/bin/bash
+
+QSH_BASE=~/.qsh
+QSH_CONNECTIONS=$QSH_BASE/.servers
+
+CONNECTION=$1
+if [[ -z "$CONNECTION" ]]; then
+  echo "usage: qsh-go <connection>";
+  echo;
+  tree "$QSH_CONNECTIONS";
+  exit 0;
+fi;
+
+if [[ "$CONNECTION" != *.json ]]; then
+  CONNECTION="${CONNECTION}.json";
+fi;
+
+CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION
+if [[ ! -f "$CONNECTION_FILE" ]]; then
+  echo "invalid connection";
+  exit -1;
+fi;
+
+CONNECTION_DATA=$(cat "$CONNECTION_FILE");
+
+CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
+INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
+PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.password')";
+
+if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
+  echo "invalid connection definition";
+  exit -1;
+fi;
+
+CLIENT_NAME=$(basename "$CLIENT");
+source "$QSH_BASE/clients/$CLIENT_NAME/qsh-go";
+
+if [[ "$PASSWORD" == "null" ]]; then
+  $QSH_INVOCATION;
+  exit 0;
+fi;
+
+"$QSH_BASE/scripts/qsh-go.exp" "$QSH_INVOCATION" "$PASSWORD_PROMPT" "$PASSWORD";
+
