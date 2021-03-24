@@ -7,18 +7,17 @@ if [[ "$PASSWORD" != "null" ]]; then
   USE_PASSWORD="-W";
 fi;
 
-QSH_EDITOR=EDITOR=$QSH_SCRIPTS/qsh
-QSH_PROMPT="--set=PROMPT1='$(cat $QSH_CLIENTS/psql/qsh-prompt)'"
-QSH_PAGER="PAGER=$QSH_SCRIPTS/qsh-pager"
+if [[ "$VANILLA" != "true" ]]; then
+  export EDITOR=$QSH_SCRIPTS/qsh
+  export PAGER=$QSH_SCRIPTS/qsh-pager
+
+  QSH_PROMPT="\"--set=PROMPT1=$(cat $QSH_CLIENTS/psql/qsh-prompt)\""
+fi;
 
 if [[ "$PROMPT" == "false" ]]; then
   unset QSH_PROMPT;
 fi;
 
-if [[ "$VANILLA" == "true" ]]; then
-  unset QSH_EDITOR QSH_PROMPT QSH_PAGER;
-fi;
-
-QSH_INVOCATION="$QSH_EDITOR $QSH_PAGER '$CLIENT' $INVOCATION $USE_PASSWORD $QSH_PROMPT";
+QSH_INVOCATION="$CLIENT $INVOCATION $USE_PASSWORD $QSH_PROMPT";
 PASSWORD_PROMPT="Password: ";
 

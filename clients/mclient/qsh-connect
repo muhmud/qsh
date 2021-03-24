@@ -3,13 +3,13 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-QSH_EDITOR=EDITOR=$QSH_SCRIPTS/qsh
-QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
+if [[ "$VANILLA" != "true" ]]; then
+  export VISUAL=$QSH_SCRIPTS/qsh
+  export DOTMONETDB_FILE=
 
-if [[ "$VANILLA" == "true" ]]; then
-  unset QSH_EDITOR QSH_PROMPT QSH_PAGER;
+  QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
 fi;
 
-QSH_INVOCATION="$QSH_EDITOR DOTMONETDB_FILE= '$CLIENT' $INVOCATION $QSH_PAGER";
+QSH_INVOCATION="$CLIENT $INVOCATION --width=-1 $QSH_PAGER";
 PASSWORD_PROMPT="password:";
 

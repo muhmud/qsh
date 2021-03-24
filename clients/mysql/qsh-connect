@@ -7,18 +7,17 @@ if [[ "$PASSWORD" != "null" ]]; then
   USE_PASSWORD="-p";
 fi;
 
-QSH_EDITOR=EDITOR=$QSH_SCRIPTS/qsh
-QSH_PROMPT="--prompt='$(cat $QSH_CLIENTS/mysql/qsh-prompt)'"
-QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
+if [[ "$VANILLA" != "true" ]]; then
+  export EDITOR=$QSH_SCRIPTS/qsh
 
-if [[ "$PROMPT" == "false" ]]; then
+  QSH_PROMPT="\"--prompt=$(cat $QSH_CLIENTS/mysql/qsh-prompt)\"";
+  QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
+fi;
+
+if [[ "$PROMPT" != "false" ]]; then
   unset QSH_PROMPT;
 fi;
 
-if [[ "$VANILLA" == "true" ]]; then
-  unset QSH_EDITOR QSH_PROMPT QSH_PAGER;
-fi;
-
-QSH_INVOCATION="$QSH_EDITOR '$CLIENT' $INVOCATION $USE_PASSWORD $QSH_PAGER $QSH_PROMPT";
+QSH_INVOCATION="$CLIENT $INVOCATION $USE_PASSWORD $QSH_PAGER $QSH_PROMPT";
 PASSWORD_PROMPT="Enter password: ";
 
