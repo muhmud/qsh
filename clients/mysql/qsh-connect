@@ -14,7 +14,7 @@ if [[ "$VANILLA" != "true" ]]; then
   QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
 fi;
 
-if [[ "$PROMPT" != "false" ]]; then
+if [[ "$PROMPT" != "true" ]]; then
   unset QSH_PROMPT;
 fi;
 

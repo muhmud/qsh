@@ -14,7 +14,7 @@ if [[ "$VANILLA" != "true" ]]; then
   QSH_PROMPT="\"--set=PROMPT1=$(cat $QSH_CLIENTS/psql/qsh-prompt)\""
 fi;
 
-if [[ "$PROMPT" == "false" ]]; then
+if [[ "$PROMPT" != "true" ]]; then
   unset QSH_PROMPT;
 fi;
 
