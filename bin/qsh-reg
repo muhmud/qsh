@@ -12,14 +12,14 @@ if [[ "$?" -ne 0 ]]; then
 fi;
 
 function usage() {
-  echo "usage: qsh-reg [-pxsvde] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnvde] <name> <invocation>";
   exit 0;
 }
 
 PROMPT=true
 VANILLA=false
 
-while getopts "pxsvde" arg; do
+while getopts "pxnvde" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -27,7 +27,7 @@ while getopts "pxsvde" arg; do
     x)
       OVERWRITE_EXISTING=1
       ;;
-    s)
+    n)
       PROMPT=false
       ;;
     v)
