@@ -5,7 +5,7 @@ QSH_CLIENTS=$QSH_BASE/clients
 
 if [[ "$VANILLA" != "true" ]]; then
   export VISUAL=$QSH_SCRIPTS/qsh
-  export DOTMONETDB_FILE=
+  export DOTMONETDBFILE=
 
   QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
 fi;

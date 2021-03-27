@@ -12,19 +12,14 @@ if [[ "$?" -ne 0 ]]; then
 fi;
 
 function usage() {
-  echo "usage: qsh-reg <name> [-pxsv] <invocation>";
+  echo "usage: qsh-reg [-pxsvde] <name> <invocation>";
   exit 0;
 }
-
-NAME=$1
-[[ -z "$NAME" ]] && usage;
-[[ "$NAME" =~ ^-.* ]] && usage;
 
 PROMPT=true
 VANILLA=false
 
-shift 1;
-while getopts "pxsv" arg; do
+while getopts "pxsvde" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -38,12 +33,49 @@ while getopts "pxsv" arg; do
     v)
       VANILLA=true
       ;;
+    d)
+      DELETE=1
+      ;;
+    e)
+      EDIT=1
+      ;;
   esac
 done
 
 # Move past the options
 shift $(expr $OPTIND - 1);
 
+NAME=$1
+[[ -z "$NAME" ]] && usage;
+[[ "$NAME" =~ ^-.* ]] && usage;
+
+CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
+
+# Handle editing
+if [[ ! -z "$EDIT" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection exists";
+    exit -1;
+  fi;
+
+  EDITOR=${EDITOR:-$VISUAL}
+  EDITOR=${EDITOR:-$QSH_EDITOR}
+  if [[ -z "$EDITOR" ]]; then
+    echo 'could not find editor, set $EDITOR/$VISUAL';
+    exit -1
+  fi;
+
+  "$EDITOR" "$CONNECTION_FILE";
+  exit 0;
+fi;
+
+# Handle deleting of connections
+if [[ ! -z "$DELETE" ]]; then
+  rm -f "$CONNECTION_FILE";
+  exit 0;
+fi;
+
+shift 1;
 CLIENT=$1
 [[ -z "$CLIENT" ]] && usage;
 
@@ -56,7 +88,6 @@ fi;
 shift 1;
 INVOCATION="$*"
 
-CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
 if [ -f "$CONNECTION_FILE" ] && [ -z "$OVERWRITE_EXISTING" ]; then
   echo "connection exists, use -x to overwrite";
   exit -1;
