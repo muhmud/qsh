@@ -9,8 +9,8 @@ function qsh_invoke_with_password {
     set send_slow {1 .1}
     proc send {ignore arg} {
       sleep .1
-        exp_send -s -- \$arg
-      }
+      exp_send -s -- \$arg
+    }
 
     set timeout -1
     log_user 0
@@ -32,8 +32,8 @@ function qsh_invoke {
     set send_slow {1 .1}
     proc send {ignore arg} {
       sleep .1
-        exp_send -s -- \$arg
-      }
+      exp_send -s -- \$arg
+    }
 
     set timeout -1
     log_user 0
@@ -49,6 +49,7 @@ EOF
 }
 
 CONNECTION=$1
+shift 1;
 if [[ -z "$CONNECTION" ]]; then
   echo "usage: qsh <connection> | <invocation>";
   echo;
@@ -61,11 +62,12 @@ if [[ "$CONNECTION" != *.json ]]; then
 fi;
 
 CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION
-if [ ! -f "$CONNECTION_FILE" ] || [ $# -gt 1 ]; then
+if [[ ! -f "$CONNECTION_FILE" ]]; then
   # Try to perform a direct invocation
-  CLIENT=$1
-  shift 1; INVOCATION="$*"
+  CLIENT=$CONNECTION
+  INVOCATION="$*"
   PASSWORD=null
+  PROMPT=true
 
   CLIENT_NAME=$(basename "$CLIENT");
   if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
@@ -95,6 +97,8 @@ if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
 fi;
 
 CLIENT_NAME=$(basename "$CLIENT");
+INVOCATION="$INVOCATION $*";
+
 source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";
 
 if [[ "$PASSWORD" == "null" ]]; then
