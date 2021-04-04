@@ -57,11 +57,12 @@ if [[ -z "$CONNECTION" ]]; then
   exit 0;
 fi;
 
-if [[ "$CONNECTION" != *.json ]]; then
-  CONNECTION="${CONNECTION}.json";
+CONNECTION_JSON=$CONNECTION;
+if [[ "$CONNECTION_JSON" != *.json ]]; then
+  CONNECTION_JSON="${CONNECTION}.json";
 fi;
 
-CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION
+CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION_JSON
 if [[ ! -f "$CONNECTION_FILE" ]]; then
   # Try to perform a direct invocation
   CLIENT=$CONNECTION
