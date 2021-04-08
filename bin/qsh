@@ -6,11 +6,11 @@ QSH_CONNECTIONS=$QSH_BASE/.connections
 
 function qsh_invoke_with_password {
   read -r -d '' QSH_INVOKE_PASSWORD <<EOF
-    set send_slow {1 .1}
-    proc send {ignore arg} {
-      sleep .1
-      exp_send -s -- \$arg
-    }
+    trap {
+      set XZ [stty rows]
+      set YZ [stty columns]
+      stty rows \$XZ columns \$YZ < \$spawn_out(slave,name)
+    } WINCH
 
     set timeout -1
     log_user 0
@@ -29,11 +29,11 @@ EOF
 
 function qsh_invoke {
   read -r -d '' QSH_INVOKE <<EOF
-    set send_slow {1 .1}
-    proc send {ignore arg} {
-      sleep .1
-      exp_send -s -- \$arg
-    }
+    trap {
+      set XZ [stty rows]
+      set YZ [stty columns]
+      stty rows \$XZ columns \$YZ < \$spawn_out(slave,name)
+    } WINCH
 
     set timeout -1
     log_user 0
