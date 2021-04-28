@@ -2,7 +2,7 @@
 
 QSH_BASE=~/.qsh
 QSH_CLIENTS=$QSH_BASE/clients
-QSH_CONNECTIONS=$QSH_BASE/.connections
+QSH_CONNECTIONS=$QSH_BASE/connections
 
 function qsh_invoke_with_password {
   read -r -d '' QSH_INVOKE_PASSWORD <<EOF
@@ -76,10 +76,8 @@ if [[ ! -f "$CONNECTION_FILE" ]]; then
     exit -1;
   fi;
 
-  source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
-
   # Invoke the client
-  qsh_invoke;
+  source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
   exit 0;
 fi;
 
@@ -88,7 +86,7 @@ CONNECTION_DATA=$(cat "$CONNECTION_FILE");
 CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
 INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
-PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.password')";
+USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
 
@@ -101,11 +99,5 @@ CLIENT_NAME=$(basename "$CLIENT");
 INVOCATION="$INVOCATION $*";
 
 source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";
-
-if [[ "$PASSWORD" == "null" ]]; then
-  qsh_invoke;
-  exit 0;
-fi;
-
-qsh_invoke_with_password;
+exit 0;
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 QSH_BASE=~/.qsh
-QSH_CONNECTIONS=$QSH_BASE/.connections
+QSH_CONNECTIONS=$QSH_BASE/connections
 QSH_CLIENTS=$QSH_BASE/clients
 
 # Make sure we have jq installed
@@ -72,6 +72,11 @@ fi;
 # Handle deleting of connections
 if [[ ! -z "$DELETE" ]]; then
   rm -f "$CONNECTION_FILE";
+
+  CONNECTION=$(basename "$CONNECTION_FILE");
+  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+  rm -f "$CLIENT_CONNECTION_FILE";
+
   exit 0;
 fi;
 
@@ -106,10 +111,14 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "client": "$CLIENT",
   "invocation": "$INVOCATION",
   "prompt": $PROMPT,
-  "vanilla": $VANILLA
-  $([[ ! -z "$USING_PASSWORD" ]] && echo ", \"password\": \"$PASSWORD\"")
+  "vanilla": $VANILLA,
+  "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false')
 }
 EOF
+
+if [[ ! -z "$USING_PASSWORD" ]]; then
+  $QSH_CLIENTS/$CLIENT_NAME/qsh-reg "$CONNECTION_FILE" "$PASSWORD";
+fi;
 
 chmod 0600 "$CONNECTION_FILE";
 

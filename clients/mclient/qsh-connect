@@ -5,11 +5,19 @@ QSH_CLIENTS=$QSH_BASE/clients
 
 if [[ "$VANILLA" != "true" ]]; then
   export VISUAL=$QSH_SCRIPTS/qsh
-  export DOTMONETDBFILE=
 
   QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
 fi;
 
-QSH_INVOCATION="$CLIENT $INVOCATION --width=-1 $QSH_PAGER";
-PASSWORD_PROMPT="password:";
+if [[ -f "$CONNECTION_FILE" ]]; then
+  CONNECTION=$(basename "$CONNECTION_FILE");
+  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+  export DOTMONETDBFILE=$CLIENT_CONNECTION_FILE
+
+  INVOCATION="$(echo "$INVOCATION" | sed 's/\(.*\) -u.*/\1/g')";
+else
+  export DOTMONETDBFILE=
+fi;
+
+eval "$CLIENT $INVOCATION --width=-1 $QSH_PAGER";
 
