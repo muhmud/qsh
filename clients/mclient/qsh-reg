@@ -9,7 +9,7 @@ PASSWORD=$2
 CONNECTION=$(basename "$CONNECTION_FILE");
 CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
 
-USER=$(jq -r '.invocation' connections/local-mclient.json \
+USER=$(jq -r '.invocation' "$CONNECTION_FILE" \
   | sed 's/.* -u[ ]\?["]\?\([^ ]\+\)[ ]\?["]\?/\1/g');
 
 cat <<EOF > "$CLIENT_CONNECTION_FILE"
