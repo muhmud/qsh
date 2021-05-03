@@ -1,15 +1,15 @@
 #!/bin/bash
 
-FILTER=$2
+QUERY_CUSTOMIZATION=$2
 
 cat <<EOF > $1
 select * from (
-  select TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, 
-         obj_description(concat(TABLE_SCHEMA, '.', TABLE_NAME)::regclass::oid) as TABLE_COMMENT
-  from INFORMATION_SCHEMA.TABLES
-  where TABLE_TYPE = 'VIEW'
+  select table_schema, table_name, table_type, 
+         obj_description(concat(table_schema, '.', table_name)::regclass::oid) as table_comment
+  from information_schema.tables
+  where table_type = 'VIEW'
+  order by 1, 2, 3
 ) t
-$FILTER
-order by 1, 2, 3;
+$QUERY_CUSTOMIZATION;
 EOF
 

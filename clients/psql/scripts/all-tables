@@ -1,10 +1,17 @@
 #!/bin/bash
 
+QUERY_CUSTOMIZATION=$2
+
 cat <<EOF > $1
-select TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE,
-       obj_description(concat(TABLE_SCHEMA, '.', TABLE_NAME)::regclass::oid) as TABLE_COMMENT
-from INFORMATION_SCHEMA.TABLES
-where TABLE_TYPE = 'BASE TABLE'
-order by 1, 2, 3;
+select *
+from (
+  select table_schema, table_name, table_type, '' as table_engine, c.reltuples::bigint as table_rows,
+         obj_description((table_schema || '.' || table_name)::regclass) as table_comment
+  from information_schema.tables t
+  left outer join pg_catalog.pg_class c on (table_schema || '.' || table_name)::regclass = c.oid
+  where table_type = 'BASE TABLE'
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
 EOF
 

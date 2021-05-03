@@ -1,11 +1,16 @@
 #!/bin/bash
 
+QUERY_CUSTOMIZATION=$2
+
 cat <<EOF > $1
-select TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE,
-       obj_description(concat(TABLE_SCHEMA, '.', TABLE_NAME)::regclass::oid) as TABLE_COMMENT
-from INFORMATION_SCHEMA.TABLES
-where TABLE_TYPE = 'BASE TABLE'
-and TABLE_SCHEMA not in ('pg_catalog', 'information_schema')
-order by 1, 2, 3;
+select * from (
+  select table_schema, table_name, table_type,
+         obj_description(concat(table_schema, '.', table_name)::regclass::oid) as table_comment
+  from information_schema.tables
+  where table_type = 'BASE TABLE'
+  and table_schema not in ('pg_catalog', 'information_schema')
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
 EOF
 

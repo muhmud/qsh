@@ -1,9 +1,15 @@
 #!/bin/bash
 
+QUERY_CUSTOMIZATION=$2
+
 cat <<EOF > $1
-select ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_BODY
-from INFORMATION_SCHEMA.ROUTINES
-where ROUTINE_SCHEMA not in ('information_schema', 'pg_catalog')
-order by 1, 2;
+select * from (
+  select routine_schema, routine_name, routine_type, routine_body
+  from information_schema.routines
+  where routine_schema != 'information_schema'
+  and routine_schema not like 'pg\_%'
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
 EOF
 

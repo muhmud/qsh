@@ -1,9 +1,14 @@
 #!/bin/bash
 
+QUERY_CUSTOMIZATION=$2
+
 cat <<EOF > $1
-select SCHEMA_NAME as CATALOG_NAME
-from INFORMATION_SCHEMA.SCHEMATA
-where SCHEMA_NAME not in ('mysql', 'information_schema', 'performance_schema', 'sys')
-order by 1;
+select * from (
+  select SCHEMA_NAME as CATALOG_NAME
+  from INFORMATION_SCHEMA.SCHEMATA
+  where SCHEMA_NAME not in ('mysql', 'information_schema', 'performance_schema', 'sys')
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
 EOF
 

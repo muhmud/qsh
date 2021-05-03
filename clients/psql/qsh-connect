@@ -8,7 +8,7 @@ if [[ "$VANILLA" != "true" ]]; then
   export PAGER=$QSH_SCRIPTS/qsh-pager
 
   PROMPT_DATA="$(cat $QSH_CLIENTS/psql/qsh-prompt)";
-  QSH_PROMPT="\"--set=PROMPT1=$(echo -e "$PROMPT_DATA")\" \"--set=PROMPT2=*>>\" \"--set=PROMPT3=*>>\""
+  QSH_PROMPT="\"--set=PROMPT1=$(echo -e "$PROMPT_DATA")\" \"--set=PROMPT2=*>> \" \"--set=PROMPT3=*>> \""
 fi;
 
 if [[ "$PROMPT" != "true" ]]; then

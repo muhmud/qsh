@@ -1,0 +1,7 @@
+#!/bin/bash
+
+cat <<EOF > $1
+select * from $(cat $1) 
+limit 1000;
+EOF
+

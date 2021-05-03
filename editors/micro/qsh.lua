@@ -151,7 +151,7 @@ function ExecuteScript(bp)
 
   local cursor = bp.Buf:GetActiveCursor()
   if cursor and cursor:HasSelection() then
-    local script = util.String(cursor:GetSelection())
+    local script = string.gsub(util.String(cursor:GetSelection()), "\n", " ")
 
     -- Call back into qsh
     micro.InfoBar():Message("Qsh: " .. script .. " >>>")
