@@ -15,8 +15,6 @@ if [[ -f "$CONNECTION_FILE" ]]; then
   export DOTMONETDBFILE=$CLIENT_CONNECTION_FILE
 
   INVOCATION="$(echo "$INVOCATION" | sed 's/\(.*\) -u.*/\1/g')";
-else
-  export DOTMONETDBFILE=
 fi;
 
 eval "$CLIENT $INVOCATION --width=-1 $QSH_PAGER";
