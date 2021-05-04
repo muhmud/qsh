@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select *
+from (
+  select table_schema, table_name, table_type, '' as table_engine, c.reltuples::bigint as table_rows,
+         obj_description((table_schema || '.' || table_name)::regclass) as table_comment
+  from information_schema.tables t
+  left outer join pg_catalog.pg_class c on (table_schema || '.' || table_name)::regclass = c.oid
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
