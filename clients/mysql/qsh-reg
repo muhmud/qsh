@@ -8,7 +8,9 @@ PASSWORD=$2
 
 CONNECTION=$(basename "$CONNECTION_FILE");
 CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+
 export MYSQL_TEST_LOGIN_FILE=$CLIENT_CONNECTION_FILE
+rm -f $MYSQL_TEST_LOGIN_FILE;
 
 function set_mysql_config {
   read -r -d '' MYSQL_CONFIG_SETTER <<EOF
@@ -17,7 +19,8 @@ function set_mysql_config {
     spawn mysql_config_editor set --login-path=qsh -p
     match_max 100000
     expect -exact "Enter password: "
-    send -- "$PASSWORD\r"
+    send -- '$PASSWORD'
+    send -- "\r"
     interact { -o eof {exit} }
 EOF
 
