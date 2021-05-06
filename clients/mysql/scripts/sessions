@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select ID as PROCESS_ID, DB as DATABASE_NAME, USER as USER_NAME, HOST as CLIENT_ADDRESS,
+         STATE, TIME, INFO as QUERY
+  from information_schema.processlist
+  where concat(USER, '@', HOST) = current_user
+  and ID != connection_id()
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

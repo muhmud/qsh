@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select sessionid as process_id, username as user_name, login as session_start_timestamp,
+         idle as state
+  from sys.sessions
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
