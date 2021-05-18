@@ -4,12 +4,13 @@ QUERY_CUSTOMIZATION=$2
 
 cat <<EOF > $1
 select * from (
-  select table_schema, table_name, table_type,
+  select table_schema, table_name, table_type, c.reltuples::bigint as table_rows,
          obj_description(concat(table_schema, '.', table_name)::regclass::oid) as table_comment
-  from information_schema.tables
-  where table_type = 'BASE TABLE'
-  and table_schema != 'information_schema'
-  and table_schema not like 'pg\_%'
+  from information_schema.tables t
+  left outer join pg_catalog.pg_class c on (table_schema || '.' || table_name)::regclass = c.oid
+  where t.table_type = 'BASE TABLE'
+  and t.table_schema != 'information_schema'
+  and t.table_schema not like 'pg\_%'
   order by 1, 2, 3
 ) t
 $QUERY_CUSTOMIZATION;
