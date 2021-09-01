@@ -48,10 +48,21 @@ EOF
   expect -c "$QSH_INVOKE";
 }
 
+while getopts "c:" arg; do
+  case $arg in
+    c)
+      CLIENT_COMMAND=$OPTARG
+      ;;
+  esac
+done
+
+# Move past the options
+shift $(expr $OPTIND - 1);
+
 CONNECTION=$1
 shift 1;
 if [[ -z "$CONNECTION" ]]; then
-  echo "usage: qsh <connection> | <invocation>";
+  echo "usage: qsh [-c] <connection> | <invocation>";
   echo;
   tree --prune --noreport "$QSH_CONNECTIONS";
   exit 0;
@@ -78,26 +89,30 @@ if [[ ! -f "$CONNECTION_FILE" ]]; then
 
   # Invoke the client
   source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
-  exit 0;
+  exit;
 fi;
 
 CONNECTION_DATA=$(cat "$CONNECTION_FILE");
 
 CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
+CLIENT_NAME=$(basename "$CLIENT");
+
 INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
 
+if [[ ! -z "$CLIENT_COMMAND" ]]; then
+  CLIENT=$CLIENT_COMMAND
+  VANILLA=true
+fi;
+
 if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
   echo "invalid connection definition";
   exit -1;
 fi;
 
-CLIENT_NAME=$(basename "$CLIENT");
 INVOCATION="$INVOCATION $*";
 
 source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";
-exit 0;
-

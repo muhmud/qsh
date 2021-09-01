@@ -12,14 +12,16 @@ if [[ "$?" -ne 0 ]]; then
 fi;
 
 function usage() {
-  echo "usage: qsh-reg [-pxnvde] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnv] <name> <invocation>";
+  echo "       qsh-reg -c      <name> <to>";
+  echo "       qsh-reg [-deu]  <name>";
   exit 0;
 }
 
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvde" arg; do
+while getopts "pxnvdec" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -39,6 +41,12 @@ while getopts "pxnvde" arg; do
     e)
       EDIT=1
       ;;
+    u)
+      UPDATE_PASSWORD=1
+      ;;
+    c)
+      COPY=1
+      ;;
   esac
 done
 
@@ -54,7 +62,7 @@ CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
 # Handle editing
 if [[ ! -z "$EDIT" ]]; then
   if [[ ! -f "$CONNECTION_FILE" ]]; then
-    echo "invalid connection exists";
+    echo "invalid connection";
     exit -1;
   fi;
 
@@ -69,6 +77,34 @@ if [[ ! -z "$EDIT" ]]; then
   exit 0;
 fi;
 
+# Handle copying
+if [[ ! -z "$COPY" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection";
+    exit -1;
+  fi;
+
+  DESTINATION=$2
+  [[ -z "$DESTINATION" ]] && usage;
+  [[ "$DESTINATION" =~ ^-.* ]] && usage;
+
+  DESTINATION_CONNECTION_FILE=$QSH_CONNECTIONS/${DESTINATION}.json
+  if [[ -f "$DESTINATION_CONNECTION_FILE" ]]; then
+    echo "destination connection already exists - remove it first";
+  fi;
+
+  CONNECTION=$(basename "$CONNECTION_FILE");
+  DESTINATION_CONNECTION=$(basename "$DESTINATION_CONNECTION_FILE");
+
+  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+  DESTINATION_CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${DESTINATION_CONNECTION}.reg
+
+  cp "$CONNECTION_FILE" "$DESTINATION_CONNECTION_FILE";
+  cp "$CLIENT_CONNECTION_FILE" "$DESTINATION_CLIENT_CONNECTION_FILE";
+
+  exit 0;
+fi;
+
 # Handle deleting of connections
 if [[ ! -z "$DELETE" ]]; then
   rm -f "$CONNECTION_FILE";
@@ -77,6 +113,20 @@ if [[ ! -z "$DELETE" ]]; then
   CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
   rm -f "$CLIENT_CONNECTION_FILE";
 
+  exit 0;
+fi;
+
+# Handle password update
+if [[ ! -z "$UPDATE_PASSWORD" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection";
+    exit -1;
+  fi;
+
+  read -sp 'Password: ' PASSWORD;
+  echo;
+
+  $QSH_CLIENTS/$CLIENT_NAME/qsh-reg "$CONNECTION_FILE" "$PASSWORD";
   exit 0;
 fi;
 

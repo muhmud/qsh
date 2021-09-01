@@ -61,7 +61,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QSH_TMP/query.${PANE_ID}.sql
+    EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.sql
   fi;
 
   # Find the name of the SQL client running qsh (for advanced functionality)
