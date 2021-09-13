@@ -4,48 +4,29 @@ QSH_BASE=~/.qsh
 QSH_CLIENTS=$QSH_BASE/clients
 QSH_CONNECTIONS=$QSH_BASE/connections
 
-function qsh_invoke_with_password {
-  read -r -d '' QSH_INVOKE_PASSWORD <<EOF
-    trap {
-      set XZ [stty rows]
-      set YZ [stty columns]
-      stty rows \$XZ columns \$YZ < \$spawn_out(slave,name)
-    } WINCH
+function usage {
+  local has_tree=0;
+  which tree > /dev/null;
+  if [[ $? == 0 ]]; then
+    has_tree=1;
+  fi;
 
-    set timeout -1
-    log_user 0
-    spawn $QSH_INVOCATION 
-    match_max 100000
-    expect -exact "$PASSWORD_PROMPT"
-    send -- "$PASSWORD\r"
+  echo "usage: qsh <connection> | <invocation> ...";
+  echo "       qsh -c <command> <connection> ..."
+  echo;
+  echo "Connections can be registered using qsh-reg, otherwise just invoke your";
+  echo "sql client to connect to a data source. In both cases, additional";
+  echo "command-line arguments can be provided."
+  echo;
+  echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
+  echo "make use of a registered connection, providing additional arguments as";
+  echo "required.";
 
-    interact {
-      -o eof {exit}
-    }
-EOF
-
-  expect -c "$QSH_INVOKE_PASSWORD";
-}
-
-function qsh_invoke {
-  read -r -d '' QSH_INVOKE <<EOF
-    trap {
-      set XZ [stty rows]
-      set YZ [stty columns]
-      stty rows \$XZ columns \$YZ < \$spawn_out(slave,name)
-    } WINCH
-
-    set timeout -1
-    log_user 0
-    spawn $QSH_INVOCATION 
-    match_max 100000
-
-    interact {
-      -o eof {exit}
-    }
-EOF
-
-  expect -c "$QSH_INVOKE";
+  if [[ $has_tree -eq 1 ]]; then
+    echo;
+    tree --prune --noreport "$QSH_CONNECTIONS";
+  fi;
+  exit 0;
 }
 
 while getopts "c:" arg; do
@@ -62,10 +43,7 @@ shift $(expr $OPTIND - 1);
 CONNECTION=$1
 shift 1;
 if [[ -z "$CONNECTION" ]]; then
-  echo "usage: qsh [-c] <connection> | <invocation>";
-  echo;
-  tree --prune --noreport "$QSH_CONNECTIONS";
-  exit 0;
+  usage;
 fi;
 
 CONNECTION_JSON=$CONNECTION;

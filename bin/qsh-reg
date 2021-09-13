@@ -12,9 +12,33 @@ if [[ "$?" -ne 0 ]]; then
 fi;
 
 function usage() {
+  local has_tree=0;
+  which tree > /dev/null;
+  if [[ $? == 0 ]]; then
+    has_tree=1;
+  fi;
+
   echo "usage: qsh-reg [-pxnv] <name> <invocation>";
-  echo "       qsh-reg -c      <name> <to>";
-  echo "       qsh-reg [-deu]  <name>";
+  echo "       qsh-reg [-deu] <name>";
+  echo "       qsh-reg -c <name> <new-name>";
+  echo;
+  echo "Register a new connection, using:";
+  echo "  -p   A password will be provided and stored for the connection";
+  echo "  -x   Overwrite an existing connection with the same name";
+  echo "  -n   Do not update the SQL client prompt when using the connection";
+  echo "  -v   Vanilla connection, do not set any QSH properties";
+  echo;
+  echo "Manage an existing connection, using:";
+  echo "  -d   Delete a connection";
+  echo "  -e   Edit a connection";
+  echo "  -u   Update the password for a connection";
+  echo;
+  echo "Copy a connection using -c and providing a new name for the copy.";
+
+  if [[ $has_tree -eq 1 ]]; then
+    echo;
+    tree --prune --noreport "$QSH_CONNECTIONS";
+  fi;
   exit 0;
 }
 
