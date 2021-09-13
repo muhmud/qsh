@@ -45,8 +45,8 @@ function QshApplyDefaultKeyMappings()
   inoremap <silent> <buffer> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
 
   " Alt+r (for rows)
-  vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
-  vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
+  vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
+  vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
   nnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
   nnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
   inoremap <silent> <buffer> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
