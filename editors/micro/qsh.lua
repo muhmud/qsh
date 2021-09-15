@@ -117,11 +117,12 @@ function FindScriptTarget(bp)
     end
 
     -- If the target end was not found, use the end of the line
-    local finish = targetEnd[2]
+    local finish = targetEnd[1]
     if finish.X == 0 and finish.Y == 0 then
       finish = endLoc
     end
 
+    micro.InfoBar():Message("this: " .. util.String(bp.Buf:Substr(start, finish)))
     return bp.Buf:Substr(start, finish)
   end
 
@@ -138,10 +139,10 @@ function FindSnippetTarget(bp)
 
     -- Find the previous and next instances of the target delimiter
     local targetDelimiter = "[^( ]+\\s*\\([^()]*\\)"
-    local targetStart = bp.Buf:FindNext(targetDelimiter, startLoc, cursorLoc, cursorLoc, false, true)
+    local targetStart = bp.Buf:FindNext(targetDelimiter, startLoc, endLoc, cursorLoc, false, true)
 
     -- If the target start was not found, use the current cursor position
-    local start = targetStart[2]
+    local start = targetStart[1]
     if start.X == 0 and start.Y == 0 then
       start = cursorLoc
     end
@@ -180,6 +181,22 @@ function Execute(bp, delimiter, includeDelimiter)
   shell.ExecCommand(QSH)
 end
 
+function ExecuteSelection(bp, delimiter, includeDelimiter)
+  if bp.Buf:FileType() ~= "sql" then
+    return
+  end
+
+  local cursor = bp.Buf:GetActiveCursor()
+  if cursor and cursor:HasSelection() then
+    -- Write the output file
+    ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+
+    -- Call back into qsh
+    micro.InfoBar():Message("Qsh: Sending Query >>>")
+    shell.ExecCommand(QSH)
+  end
+end
+
 function ExecuteAll(bp)
   if bp.Buf:FileType() ~= "sql" then
     return
@@ -193,16 +210,16 @@ function ExecuteAll(bp)
   shell.ExecCommand(QSH)
 end
 
-function ExecuteNamedScript(bp, script, delimiter, includeDelimiter)
+function ExecuteNamedScript(bp, script)
   if bp.Buf:FileType() ~= "sql" then
     return
   end
 
   -- Write the output file
-  ioutil.WriteFile(QSH_EXECUTE_QUERY, FindDelimitedTarget(bp, delimiter, includeDelimiter), 438)
+  ioutil.WriteFile(QSH_EXECUTE_QUERY, FindScriptTarget(bp), 438)
 
   -- Call back into qsh
-  micro.InfoBar():Message("Qsh: " .. script .. " >>>")
+--  micro.InfoBar():Message("Qsh: " .. script .. " >>>")
   shell.ExecCommand(QSH, "scripts", script);
 end
 
@@ -224,7 +241,7 @@ function ExecuteSnippet(bp)
   end
 
   local cursor = bp.Buf:GetActiveCursor()
-  local snippet = util.String(FindSnippetTarget())
+  local snippet = util.String(FindSnippetTarget(bp))
 
   if snippet ~= "" then
     -- Display a status message
@@ -267,13 +284,14 @@ function ExecuteNamedSnippet(bp, snippet, delimiter, includeDelimiter)
 
   -- Display a status message
   local message = "Qsh: @" .. snippet .. " >>>"
-  micro.InfoBar():Message(message)
 
   -- Call back into qsh
   local result, err = shell.ExecCommand(QSH, "snippets", snippet)
   if err ~= nil then
     micro.InfoBar():Error(message .. " " .. result)
     return
+  else
+    micro.InfoBar():Message(message)
   end
 
   -- Remove the last newline from the result
