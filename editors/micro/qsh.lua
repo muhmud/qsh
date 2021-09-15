@@ -138,7 +138,7 @@ function FindSnippetTarget(bp)
     local endLoc = buffer.Loc(string.len(util.String(bp.Buf:LineBytes(cursor.Loc.Y))), cursor.Loc.Y)
 
     -- Find the previous and next instances of the target delimiter
-    local targetDelimiter = "[^( ]+\\s*\\([^()]*\\)"
+    local targetDelimiter = "[^(\\s]+\\s*\\([^()]*\\)"
     local targetStart = bp.Buf:FindNext(targetDelimiter, startLoc, endLoc, cursorLoc, false, true)
 
     -- If the target start was not found, use the current cursor position
