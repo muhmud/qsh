@@ -48,7 +48,7 @@ Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 ```
 {
   "~/.qsh",
-    rtp = "editors/vim"
+  rtp = "editors/vim"
 }
 
 ```
