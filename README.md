@@ -1,5 +1,5 @@
 # qsh
-Query SHell - improved database querying for your terminal
+Query SHell - improved database querying from your terminal
 
 ![QSH](images/qsh.png)
 
