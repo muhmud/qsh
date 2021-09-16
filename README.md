@@ -1,7 +1,7 @@
 # qsh
 Query SHell - improved database querying for your terminal
 
-![QSH](https://github.com/muhmud/qsh/blob/main/images/qsh.png)
+![QSH](images/qsh.png)
 
 ## Pre-requisites
 
