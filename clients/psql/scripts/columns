@@ -1,0 +1,18 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+	select t.table_type, c.table_schema, c.table_name, c.column_name, c.ordinal_position, c.column_default, c.is_nullable,
+				 c.data_type, c.character_maximum_length, numeric_precision, numeric_scale
+	from information_schema.columns c
+	inner join information_schema.tables t on c.table_catalog = t.table_catalog and c.table_schema = t.table_schema
+		and c.table_name = t.table_name
+  where c.table_schema != 'information_schema'
+  and c.table_schema not like 'pg\_%'
+	order by 2, 3, 5
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select pid as process_id, datname as database_name, usename as user_name, client_addr as user_address,
+         application_name as application_name, backend_start as session_start_timestamp, state,
+         wait_event_type as wait_type, wait_event as wait_event, query
+  from pg_stat_activity
+  where usename = current_user
+  and pid != pg_backend_pid()
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

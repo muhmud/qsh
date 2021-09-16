@@ -1,0 +1,18 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select s.name as TABLE_SCHEMA, t.name as TABLE_NAME, 
+         (case when query is null then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE,
+         coalesce(c.remark, '') as TABLE_COMMENT
+  from sys.tables t
+  inner join sys.schemas s on t.schema_id = s.id
+  left outer join sys.comments c on t.id = c.id
+  where not s.system
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

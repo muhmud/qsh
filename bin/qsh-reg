@@ -1,0 +1,198 @@
+#!/bin/bash
+
+QSH_BASE=~/.qsh
+QSH_CONNECTIONS=$QSH_BASE/connections
+QSH_CLIENTS=$QSH_BASE/clients
+
+# Make sure we have jq installed
+JQ=$(which jq 2>/dev/null);
+if [[ "$?" -ne 0 ]]; then
+  echo "could not find jq";
+  exit -1;
+fi;
+
+function usage() {
+  local has_tree=0;
+  which tree > /dev/null;
+  if [[ $? == 0 ]]; then
+    has_tree=1;
+  fi;
+
+  echo "usage: qsh-reg [-pxnv] <name> <invocation>";
+  echo "       qsh-reg [-deu] <name>";
+  echo "       qsh-reg -c <name> <new-name>";
+  echo;
+  echo "Register a new connection, using:";
+  echo "  -p   A password will be provided and stored for the connection";
+  echo "  -x   Overwrite an existing connection with the same name";
+  echo "  -n   Do not update the SQL client prompt when using the connection";
+  echo "  -v   Vanilla connection, do not set any QSH properties";
+  echo;
+  echo "Manage an existing connection, using:";
+  echo "  -d   Delete a connection";
+  echo "  -e   Edit a connection";
+  echo "  -u   Update the password for a connection";
+  echo;
+  echo "Copy a connection using -c and providing a new name for the copy.";
+
+  if [[ $has_tree -eq 1 ]]; then
+    echo;
+    tree --prune --noreport "$QSH_CONNECTIONS";
+  fi;
+  exit 0;
+}
+
+PROMPT=true
+VANILLA=false
+
+while getopts "pxnvdec" arg; do
+  case $arg in
+    p)
+      USING_PASSWORD=1
+      ;;
+    x)
+      OVERWRITE_EXISTING=1
+      ;;
+    n)
+      PROMPT=false
+      ;;
+    v)
+      VANILLA=true
+      ;;
+    d)
+      DELETE=1
+      ;;
+    e)
+      EDIT=1
+      ;;
+    u)
+      UPDATE_PASSWORD=1
+      ;;
+    c)
+      COPY=1
+      ;;
+  esac
+done
+
+# Move past the options
+shift $(expr $OPTIND - 1);
+
+NAME=$1
+[[ -z "$NAME" ]] && usage;
+[[ "$NAME" =~ ^-.* ]] && usage;
+
+CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
+
+# Handle editing
+if [[ ! -z "$EDIT" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection";
+    exit -1;
+  fi;
+
+  EDITOR=${EDITOR:-$VISUAL}
+  EDITOR=${EDITOR:-$QSH_EDITOR}
+  if [[ -z "$EDITOR" ]]; then
+    echo 'could not find editor, set $EDITOR/$VISUAL';
+    exit -1
+  fi;
+
+  "$EDITOR" "$CONNECTION_FILE";
+  exit 0;
+fi;
+
+# Handle copying
+if [[ ! -z "$COPY" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection";
+    exit -1;
+  fi;
+
+  DESTINATION=$2
+  [[ -z "$DESTINATION" ]] && usage;
+  [[ "$DESTINATION" =~ ^-.* ]] && usage;
+
+  DESTINATION_CONNECTION_FILE=$QSH_CONNECTIONS/${DESTINATION}.json
+  if [[ -f "$DESTINATION_CONNECTION_FILE" ]]; then
+    echo "destination connection already exists - remove it first";
+  fi;
+
+  CONNECTION=$(basename "$CONNECTION_FILE");
+  DESTINATION_CONNECTION=$(basename "$DESTINATION_CONNECTION_FILE");
+
+  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+  DESTINATION_CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${DESTINATION_CONNECTION}.reg
+
+  cp "$CONNECTION_FILE" "$DESTINATION_CONNECTION_FILE";
+  cp "$CLIENT_CONNECTION_FILE" "$DESTINATION_CLIENT_CONNECTION_FILE";
+
+  exit 0;
+fi;
+
+# Handle deleting of connections
+if [[ ! -z "$DELETE" ]]; then
+  rm -f "$CONNECTION_FILE";
+
+  CONNECTION=$(basename "$CONNECTION_FILE");
+  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
+  rm -f "$CLIENT_CONNECTION_FILE";
+
+  exit 0;
+fi;
+
+# Handle password update
+if [[ ! -z "$UPDATE_PASSWORD" ]]; then
+  if [[ ! -f "$CONNECTION_FILE" ]]; then
+    echo "invalid connection";
+    exit -1;
+  fi;
+
+  read -sp 'Password: ' PASSWORD;
+  echo;
+
+  $QSH_CLIENTS/$CLIENT_NAME/qsh-reg "$CONNECTION_FILE" "$PASSWORD";
+  exit 0;
+fi;
+
+shift 1;
+CLIENT=$1
+[[ -z "$CLIENT" ]] && usage;
+
+CLIENT_NAME=$(basename "$CLIENT");
+if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+  echo "unknown client '$CLIENT_NAME'";
+  exit -1;
+fi;
+
+shift 1;
+INVOCATION="$*"
+
+if [ -f "$CONNECTION_FILE" ] && [ -z "$OVERWRITE_EXISTING" ]; then
+  echo "connection exists, use -x to overwrite";
+  exit -1;
+fi;
+
+if [[ ! -z "$USING_PASSWORD" ]]; then
+  read -sp 'Password: ' PASSWORD;
+  echo;
+fi;
+
+# Ensure the destination directory exists
+mkdir -p "$(dirname "$CONNECTION_FILE")";
+
+cat <<EOF | jq > "$CONNECTION_FILE"
+{
+  "client": "$CLIENT",
+  "invocation": "$INVOCATION",
+  "prompt": $PROMPT,
+  "vanilla": $VANILLA,
+  "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false')
+}
+EOF
+
+if [[ ! -z "$USING_PASSWORD" ]]; then
+  $QSH_CLIENTS/$CLIENT_NAME/qsh-reg "$CONNECTION_FILE" "$PASSWORD";
+fi;
+
+chmod 0600 "$CONNECTION_FILE";
+

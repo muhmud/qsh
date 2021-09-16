@@ -1,0 +1,13 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select ROUTINE_SCHEMA, ROUTINE_NAME, ROUTINE_TYPE, ROUTINE_BODY
+  from INFORMATION_SCHEMA.ROUTINES
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

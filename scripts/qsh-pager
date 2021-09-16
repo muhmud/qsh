@@ -1,0 +1,74 @@
+#!/bin/bash
+
+# The ID of the current pane, which should be the SQL client pane
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+
+# Base directory for query editor tmp files
+QSH_TMP=/tmp/qsh
+
+# File that will exist if a result is requested, instead of displaying to the screen
+RESULT_REQUEST=$QSH_TMP/client.${PANE_ID}.result-request
+
+# AWK script used to cleanup output result requests
+RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
+  BEGIN {
+    value_now = 0;
+    line_count = 0; 
+  } 
+
+  { 
+    line_count++;
+    if (($0 ~ /^[+-][-=+]+[+-]$/ && line_count != 1)) {
+      if (value_now != 0) {
+        value_now = 0;
+      } else {
+        value_now = 1;
+      }
+    } else if ($0 ~ /^\([0-9]+ row(s)*\)$/) {
+      value_now = 0;
+    } else if (value_now != 0) {
+      print $0;
+    }
+  }
+EOF
+);
+
+# The pager to be used display results
+if [[ -z "$QSH_PAGER" ]]; then
+  # No pager has been set, so try to find a suitable one
+  QSH_PAGER="$(which pspg)";
+  if [[ $? -ne 0 ]]; then
+    # We couldn't find pspg, so use less (if we can)
+    QSH_PAGER="$(which less)";
+    if [[ $? -eq 0 ]]; then
+      QSH_PAGER="$QSH_PAGER -SinFX";
+    else 
+      # Default pager: just use cat
+      QSH_PAGER="$(which cat)";
+    fi;
+  fi;
+fi;
+
+if [[ -f "$RESULT_REQUEST" ]]; then
+  # Create some file name we will use to communicate back to the QSH script
+  RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+  RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+  RESULT_REQUEST_PERFORM_CLEANUP=$(cat "$RESULT_REQUEST");
+
+  if [[ -z "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
+    # Cleanup the results and put them into the output file
+    cat | awk "$RESULT_REQUEST_CLEANUP" \
+        | sed 's/^|//g; s/|$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
+        > "$RESULT_REQUEST_OUTPUT";
+  else
+    # Don't cleanup the results, i.e. return them as is
+    cat > "$RESULT_REQUEST_OUTPUT";
+  fi;
+
+  # Signal that we are done
+  touch "$RESULT_REQUEST_COMPLETE";
+else
+  # No special processing: call the normal pager
+  $QSH_PAGER;
+fi;
+

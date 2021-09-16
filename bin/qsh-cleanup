@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QSH_TMP=/tmp/qsh
+cd "$QSH_TMP"
+
+ACTIVE_PANES=$(tmux list-panes -a -F '#{pane_id}');
+ls -1 "$QSH_TMP" | while read -r FILE ; do
+  PANE_ID=$(echo "$FILE" | sed 's/.*\(%[0-9]\+\).*/\1/g');
+  if [[ "$PANE_ID" = %* ]]; then
+    IS_ACTIVE=$(echo $ACTIVE_PANES | grep "$PANE_ID");
+    if [[ -z "$IS_ACTIVE" ]]; then
+      rm -f "$FILE";
+    fi;
+  fi;
+done;
+

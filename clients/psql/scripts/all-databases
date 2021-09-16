@@ -1,0 +1,13 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select catalog_name
+  from information_schema.information_schema_catalog_name
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

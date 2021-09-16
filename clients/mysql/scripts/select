@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE, ENGINE, TABLE_ROWS, TABLE_COMMENT
+  from INFORMATION_SCHEMA.TABLES
+  where TABLE_SCHEMA = database()
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

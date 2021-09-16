@@ -1,0 +1,11 @@
+#!/bin/bash
+
+QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../../../scripts"
+QSH_FORMATTER=$QSH_SCRIPTS/qsh-formatter.py
+
+QSH_COMMAND=$1
+
+QSH_COMMAND_INPUT="${QSH_COMMAND}.input";
+QSH_COMMAND_OUTPUT="${QSH_COMMAND}.output";
+
+"$QSH_FORMATTER" "$OSH_COMMAND_INPUT" "$QSH_COMMAND_OUTPUT";

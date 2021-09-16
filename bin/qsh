@@ -1,0 +1,102 @@
+#!/bin/bash
+
+QSH_BASE=~/.qsh
+QSH_CLIENTS=$QSH_BASE/clients
+QSH_CONNECTIONS=$QSH_BASE/connections
+
+# Check that we are in a tmux session
+if [[ -z "${TMUX}" ]]; then
+  echo "You must use qsh from within a tmux session";
+  exit -1;
+fi;
+
+function usage {
+  local has_tree=0;
+  which tree > /dev/null;
+  if [[ $? == 0 ]]; then
+    has_tree=1;
+  fi;
+
+  echo "usage: qsh <connection> | <invocation> ...";
+  echo "       qsh -c <command> <connection> ..."
+  echo;
+  echo "Connections can be registered using qsh-reg, otherwise just invoke your";
+  echo "sql client to connect to a data source. In both cases, additional";
+  echo "command-line arguments can be provided."
+  echo;
+  echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
+  echo "make use of a registered connection, providing additional arguments as";
+  echo "required.";
+
+  if [[ $has_tree -eq 1 ]]; then
+    echo;
+    tree --prune --noreport "$QSH_CONNECTIONS";
+  fi;
+  exit 0;
+}
+
+while getopts "c:" arg; do
+  case $arg in
+    c)
+      CLIENT_COMMAND=$OPTARG
+      ;;
+  esac
+done
+
+# Move past the options
+shift $(expr $OPTIND - 1);
+
+CONNECTION=$1
+shift 1;
+if [[ -z "$CONNECTION" ]]; then
+  usage;
+fi;
+
+CONNECTION_JSON=$CONNECTION;
+if [[ "$CONNECTION_JSON" != *.json ]]; then
+  CONNECTION_JSON="${CONNECTION}.json";
+fi;
+
+CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION_JSON
+if [[ ! -f "$CONNECTION_FILE" ]]; then
+  # Try to perform a direct invocation
+  CLIENT=$CONNECTION
+  INVOCATION="$*"
+  PASSWORD=null
+  PROMPT=true
+
+  CLIENT_NAME=$(basename "$CLIENT");
+  if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+    echo "invalid connection/invocation";
+    exit -1;
+  fi;
+
+  # Invoke the client
+  source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
+  exit;
+fi;
+
+CONNECTION_DATA=$(cat "$CONNECTION_FILE");
+
+CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
+CLIENT_NAME=$(basename "$CLIENT");
+
+INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
+PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
+USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
+PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
+VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
+
+if [[ ! -z "$CLIENT_COMMAND" ]]; then
+  CLIENT=$CLIENT_COMMAND
+  VANILLA=true
+fi;
+
+if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
+  echo "invalid connection definition";
+  exit -1;
+fi;
+
+INVOCATION="$INVOCATION $*";
+
+source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";

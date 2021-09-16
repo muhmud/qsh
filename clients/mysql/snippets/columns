@@ -1,0 +1,30 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TABLE=$3
+
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+
+if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
+  # Trim leading & trailing whitespace
+  TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+  cat <<EOF > $QUERY_FILE
+  select group_concat(COLUMN_NAME order by ORDINAL_POSITION separator ', ') as columns
+  from INFORMATION_SCHEMA.COLUMNS
+  where table_schema =
+    (case when locate('.', '$TABLE') = 0 then database()
+          else replace(replace(substr('$TABLE', 1, locate('.', '$TABLE') - 1), '\`', ''), '"', '')
+     end)
+  and table_name = 
+    (case when locate('.', '$TABLE') = 0 then replace(replace('$TABLE', '\`', ''), '"', '')
+          else replace(replace(substr('$TABLE', locate('.', '$TABLE') + 1), '\`', ''), '"', '')
+     end);
+EOF
+else
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+

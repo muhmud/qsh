@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+    select schema_name
+    from information_schema.schemata
+    where schema_name != 'information_schema'
+    and schema_name not like 'pg\_%'
+    order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

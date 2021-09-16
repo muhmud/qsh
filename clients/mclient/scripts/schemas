@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select name as TABLE_SCHEMA
+  from sys.schemas
+  where not system
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

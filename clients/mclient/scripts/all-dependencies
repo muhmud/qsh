@@ -1,0 +1,24 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select upper(d.obj_type) as REFERENCED_OBJECT_TYPE, s.name as REFERENCED_OBJECT_SCHEMA,
+         (case when t.name = d.name then null else t.name end) as REFERENCED_OBJECT_TABLE,
+         d.name as REFERENCED_OBJECT_NAME,
+         upper(used_by_obj_type) as REFERENCING_OBJECT_TYPE, us.name as REFERENCING_OBJECT_SCHEMA,
+         (case when ut.name = d.used_by_name then null else ut.name end) as REFERENCING_OBJECT_TABLE,
+         d.used_by_name as REFERENCING_OBJECT_NAME
+  from dependencies_vw d
+  inner join sys.ids i on d.id = i.id
+  left outer join sys.tables t on i.table_id = t.id
+  left outer join sys.schemas s on i.schema_id = s.id
+  inner join sys.ids ui on d.used_by_id = ui.id
+  left outer join sys.schemas us on ui.schema_id = us.id
+  left outer join sys.tables ut on ui.table_id = ut.id
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
