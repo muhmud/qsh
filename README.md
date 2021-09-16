@@ -46,11 +46,7 @@ Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 #### packer
 
 ```
-{
-  "~/.qsh",
-  rtp = "editors/vim"
-}
-
+{ "~/.qsh", rtp = "editors/vim" }
 ```
 
 These are the default key mappings, which can be disabled by setting `g:qsh_enable_key_mappings` to `0`:
