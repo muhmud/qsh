@@ -35,7 +35,7 @@ $endif
 
 You can currently use either `vim`/`nvim` or `micro`.
 
-### [n]vim
+### vim/nvim
 
 #### vim-plug
 
