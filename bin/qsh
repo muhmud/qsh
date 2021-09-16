@@ -4,6 +4,12 @@ QSH_BASE=~/.qsh
 QSH_CLIENTS=$QSH_BASE/clients
 QSH_CONNECTIONS=$QSH_BASE/connections
 
+# Check that we are in a tmux session
+if [[ -z "${TMUX}" ]]; then
+  echo "You must use qsh from within a tmux session";
+  exit -1;
+fi;
+
 function usage {
   local has_tree=0;
   which tree > /dev/null;
