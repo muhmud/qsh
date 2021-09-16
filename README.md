@@ -127,7 +127,7 @@ endfunction
 
 ### Micro
 
-The micro plugin can be installed by executing the following:
+The [micro](https://micro-editor.github.io/) plugin can be installed by executing the following:
 
 ```bash
 $ mkdir -p ~/.config/micro/plug && cp -r ~/.qsh/editors/micro ~/.config/micro/plug/qsh
