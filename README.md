@@ -1,5 +1,5 @@
 # qsh
-Query SHell - improved database querying for your terminal
+Query SHell - improved database querying from your terminal
 
 ![QSH](images/qsh.png)
 
@@ -46,11 +46,7 @@ Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 #### packer
 
 ```
-{
-  "~/.qsh",
-    rtp = "editors/vim"
-}
-
+{ "~/.qsh", rtp = "editors/vim" }
 ```
 
 These are the default key mappings, which can be disabled by setting `g:qsh_enable_key_mappings` to `0`:
@@ -127,7 +123,7 @@ endfunction
 
 ### Micro
 
-The micro plugin can be installed by executing the following:
+The [micro](https://micro-editor.github.io/) plugin can be installed by executing the following:
 
 ```bash
 $ mkdir -p ~/.config/micro/plug && cp -r ~/.qsh/editors/micro ~/.config/micro/plug/qsh
