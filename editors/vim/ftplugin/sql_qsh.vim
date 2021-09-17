@@ -326,7 +326,7 @@ function QshExecuteSnippet()
   let rangeEnd = getpos(".")
   let snippet = ''
 
-  let [ matchLine, matchPos ] = searchpos("[^(\\s]\\+\\s*([^()]*)", "bn", line("."))
+  let [ matchLine, matchPos ] = searchpos("[^(\t ]\\+\\s*([^()]*)", "bn", line("."))
   if matchLine != 0 
     let rangeStart[1] = matchLine
     let rangeStart[2] = matchPos
