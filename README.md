@@ -3,6 +3,8 @@ Query SHell - improved database querying from your terminal
 
 ![QSH](images/qsh.png)
 
+Currently supports `mysql`, `postgresql`, and `monetdb`.
+
 ## Pre-requisites
 
 You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager.
