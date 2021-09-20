@@ -289,9 +289,9 @@ function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
 
   let result = system("$QSH snippets " . shellescape(snippet))
   if v:shell_error != 0
-"    echo message .. " " .. result
+    echo message .. " " .. result
   else
-"    echo message
+    echo message
 
     " Prepare the results
     let result = split(result, '\n')[:-1]
