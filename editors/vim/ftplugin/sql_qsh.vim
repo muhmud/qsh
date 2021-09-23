@@ -210,7 +210,7 @@ function QshExecuteScript()
   " Write to the requested file
   let script = join(s:FindTarget())
 
-  " echo "Qsh: " . script . " >>>"
+  echo "Qsh: " . script . " >>>"
   call system("$QSH scripts " . script)
 endfunction
 
@@ -220,7 +220,7 @@ function QshExecuteScriptVisually()
 
   let script = join(s:FindVisualLines())
 
-  " echo "Qsh: " . script . " >>>"
+  echo "Qsh: " . script . " >>>"
   call system("$QSH scripts " . script)
 endfunction
 
