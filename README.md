@@ -234,9 +234,13 @@ You can either highlight the name of the table to be used with these scripts, ho
 
 Snippets are similar to scripts, however, the results are injected into the editor instead of being displayed as query results. You can also add your own custom snippets to `~/.qsh/clients/psql/snippets` for `postgresql`, for example.
 
-The only snippet currently available is:
+The snippets currently available are:
 
 * `columns(<table-name>)` - Get a comma-separated list of column names for a particular table
+* `script-table(<table-name>)` and `script-function(<function-name>)` - Script out a table or function *(MySQL only)*
+* `script(<object-name>)` - Script out a database table, view, function, or procedure, etc. *(MonetDB only)*
+
+There should be some form of `postgresql` scripting functionality coming soon, as well as more variations for `mysql`.
 
 #### Named Snippets
 
