@@ -5,13 +5,15 @@ Query SHell - improved database querying from your terminal
 
 Currently supports `mysql`, `postgresql`, and `monetdb`.
 
-## Pre-requisites
+## Prerequisites
 
 You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager. Installing [jq](https://github.com/stedolan/jq) and `tree` would also be a good idea.
 
 For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended, however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager.
 
 To format SQL statements, you will need python 3 and [sqlparse](https://github.com/andialbrecht/sqlparse).
+
+**Note: If you have issues, make sure your local install of `qsh` is fully [up-to-date](https://github.com/muhmud/qsh/#updating).**
 
 ## Setup
 
@@ -196,11 +198,12 @@ Scripts are shortcuts for SQL statements that return a consistent data set acros
 tables
 ```
 
-You can also apply additional filtering to scripts (you must highlight the query for this to work):
+You can also apply additional filtering & sorting to scripts (you must highlight the query for this to work):
 
 ```
 tables
 where table_schema = 'public'
+order by table_rows desc
 ```
 
 There are quite a few scripts available. You can see what they are by executing the `scripts` script. You can also add you own custom scripts to `~/.qsh/clients/psql/scripts` or `~/.qsh/clients/mysql/scripts`, depending on the database platform you are targeting.
@@ -243,7 +246,7 @@ Similar to named scripts, these snippets take a payload from the editor. Current
 
 ### Registering Connections
 
-You can register connections for database servers that you access frequently. This can also be used to store the password for the connection using the native mechanism of each SQL client. This is achieved using the `qsh-reg` tool.
+You can register connections for database servers that you access frequently. This can also be used to store the password for the connection using the native mechanism of each SQL client. This is achieved using the `qsh-reg` tool, and connection data will be stored under `~/.qsh/connections`.
 
 For example:
 
@@ -259,13 +262,30 @@ Once the connection is registered, you can connect like this:
 $ qsh dev-server
 ```
 
-You can also execute other tools using the connection info, such as `pg_dump`:
+Execute `qsh-reg` without any arguments to see all the available options.
+
+#### Organising Connections
+
+Connections can also be organised into directories to any level of depth:
+
+```
+$ qsh-reg -p production/prod-db -h ...
+$ qsh-reg -p test/accounting/test-db -h ...
+```
+
+You would connect just as before:
+
+```
+$ qsh production/prod-db
+```
+
+#### Using Other Database Tools
+
+You can also execute other tools using the connection info, such as `pg_dump`, using the `-c` option:
 
 ```
 $ qsh -c pg_dump dev-server --table=public.some_table -s
 ```
-
-Execute `qsh-reg` without any arguments to see all the available options.
 
 ## Options
 
