@@ -280,6 +280,14 @@ To work with database servers over SSH, you should install `qsh` on your remote 
 
 If possible, it might be easier to simply provide host and port connection details to the SQL client on your workstation and run everything locally.
 
+## Updating
+
+You can update your local copy like this:
+
+```
+$ git -C ~/.qsh pull --rebase
+```
+
 ## Exit
 
 To clean up any temporary files & go back to normal, simply exit the editor. If you exit accidentally, just trigger the editor again, and it should go back to how it was.
