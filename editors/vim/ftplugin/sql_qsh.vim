@@ -185,7 +185,7 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
   call system($QSH)
 endfunction
 
-function QshExecuteSelection()
+function QshExecuteSelection() range
   echo
   normal gv
 
@@ -214,7 +214,7 @@ function QshExecuteScript()
   call system("$QSH scripts " . script)
 endfunction
 
-function QshExecuteScriptVisually()
+function QshExecuteScriptVisually() range
   echo
   normal gv
 
@@ -234,7 +234,7 @@ function QshExecuteNamedScript(script)
   call system("$QSH scripts " . a:script)
 endfunction
 
-function QshExecuteNamedScriptVisually(script)
+function QshExecuteNamedScriptVisually(script) range
   echo
   normal gv
 
@@ -348,7 +348,7 @@ function QshExecuteSnippet()
   call s:ExecuteSnippet("", rangeStart, rangeEnd)
 endfunction
 
-function QshExecuteSnippetVisually()
+function QshExecuteSnippetVisually() range
   echo
   normal gv
 
@@ -369,7 +369,7 @@ function QshExecuteNamedSnippet(snippet)
   call s:ExecuteSnippet(a:snippet, rangeStart, rangeEnd)
 endfunction
 
-function QshExecuteNamedSnippetVisually(snippet)
+function QshExecuteNamedSnippetVisually(snippet) range
   echo
   normal gv
 
