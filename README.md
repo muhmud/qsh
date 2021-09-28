@@ -18,7 +18,7 @@ To format SQL statements, you will need python 3 and [sqlparse](https://github.c
 Clone this repository to your home:
 
 ```bash
-$ git clone git@github.com:muhmud/qsh.git ~/.qsh
+$ git clone https://github.com/muhmud/qsh.git ~/.qsh
 ```
 
 And then add the `~/.qsh/bin` directory to your `PATH`.
