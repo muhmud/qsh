@@ -7,7 +7,7 @@ Currently supports `mysql`, `postgresql`, and `monetdb`.
 
 ## Pre-requisites
 
-You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager.
+You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager. Installing [jq](https://github.com/stedolan/jq) and tree would also be a good idea.
 
 For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended, however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager.
 
@@ -194,6 +194,13 @@ Scripts are shortcuts for SQL statements that return a consistent data set acros
 
 ```
 tables
+```
+
+You can also apply additional filtering to scripts (you must highlight the query for this to work):
+
+```
+tables
+where table_schema = 'public'
 ```
 
 There are quite a few scripts available. You can see what they are by executing the `scripts` script. You can also add you own custom scripts to `~/.qsh/clients/psql/scripts` or `~/.qsh/clients/mysql/scripts`, depending on the database platform you are targeting.

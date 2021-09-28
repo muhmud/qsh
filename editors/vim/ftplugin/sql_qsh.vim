@@ -221,7 +221,7 @@ function QshExecuteScriptVisually() range
   let script = join(s:FindVisualLines())
 
   echo "Qsh: " . script . " >>>"
-  call system("$QSH scripts " . script)
+  call system("$QSH scripts \"" . script . "\"")
 endfunction
 
 function QshExecuteNamedScript(script)
