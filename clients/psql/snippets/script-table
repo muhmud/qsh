@@ -1,0 +1,31 @@
+#!/bin/bash
+
+QSH_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../../../"
+QSH_SCRIPTS="$QSH_BASE/scripts"
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TABLE=$3
+
+RESULT_REQUEST_CONTEXT="${RESULT_REQUEST}.context";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+# Trim leading & trailing whitespace
+TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+if [[ ! -z "$QSH_CONNECTION" ]]; then
+  PG_DUMP="~/.qsh/bin/qsh -c pg_dump \"$QSH_CONNECTION\"";
+else
+  PG_DUMP="pg_dump $QSH_INVOCATION";
+fi;
+
+eval "$PG_DUMP -sO --table=\"$TABLE\"" \
+  | sed 's/^--.*$//g; s/^SET.*$//g; s/^SELECT.*$//g; /^$/d' \
+  > "$RESULT_REQUEST_OUTPUT";
+
+echo >> "$RESULT_REQUEST_OUTPUT";
+
+# We are done
+touch "$RESULT_REQUEST_FINALIZED";
+

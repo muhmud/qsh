@@ -2,7 +2,7 @@
 
 RESULT_REQUEST=$1
 QUERY_FILE=$2
-FUNCTION=$3
+PROCEDURE=$3
 
 RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
 RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
@@ -12,10 +12,10 @@ if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
   # Stage 1: request the script from the database
 
   # Trim leading & trailing whitespace
-  FUNCTION="$(echo "$FUNCTION" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  PROCEDURE="$(echo "$PROCEDURE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
 
   cat <<EOF > $QUERY_FILE
-  show create function $FUNCTION;
+  show create procedure $PROCEDURE;
 EOF
 
   # Only remove trailing spaces

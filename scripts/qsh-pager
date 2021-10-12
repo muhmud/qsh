@@ -60,6 +60,11 @@ if [[ -f "$RESULT_REQUEST" ]]; then
     cat | awk "$RESULT_REQUEST_CLEANUP" \
         | sed 's/^|//g; s/|$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
         > "$RESULT_REQUEST_OUTPUT";
+  elif [[ "$RESULT_REQUEST_PERFORM_CLEANUP" == "TRAILING_SPACE" ]]; then
+    # Cleanup the results and trailing space only
+    cat | awk "$RESULT_REQUEST_CLEANUP" \
+        | sed 's/^|//g; s/|$//g; s/[[:space:]]*$//g;' \
+        > "$RESULT_REQUEST_OUTPUT";
   else
     # Don't cleanup the results, i.e. return them as is
     cat > "$RESULT_REQUEST_OUTPUT";
