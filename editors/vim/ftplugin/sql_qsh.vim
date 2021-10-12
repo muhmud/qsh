@@ -293,6 +293,11 @@ function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
   else
     echo message
 
+    " If there no results, don't do anything
+    if len(result) == 0
+      return
+    endif
+
     " Prepare the results
     let result = split(result, '\n')[:-1]
     let result_column = len(result) == 1 ? len(lineStart) + len(result[0]) : len(result[-1])

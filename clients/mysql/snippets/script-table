@@ -21,14 +21,16 @@ EOF
   # Record that we have completed Stage 1
   touch "$RESULT_REQUEST_STAGE_ONE";
 else
-  # Stage 2: cleanup the output and return it
-  cat "$RESULT_REQUEST_OUTPUT" \
-    | sed 's/^\([^|)]\)/  \1/g; s/^)\(.*\)/)\1;/g' \
-    | sed 's/^[^|]\+ | \(CREATE TABLE\)/\1/g' \
-    > "$RESULT_REQUEST_STAGE_ONE";
+  if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+    # Stage 2: cleanup the output and return it
+    cat "$RESULT_REQUEST_OUTPUT" \
+      | sed 's/^\([^|)]\)/  \1/g; s/^)\(.*\)/)\1;/g' \
+      | sed 's/^[^|]\+ | \(CREATE TABLE\)/\1/g' \
+      > "$RESULT_REQUEST_STAGE_ONE";
 
-  # Put the results into the output file
-  cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+    # Put the results into the output file
+    cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+  fi;
 
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";

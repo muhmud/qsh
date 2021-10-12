@@ -2,33 +2,40 @@
 
 RESULT_REQUEST=$1
 QUERY_FILE=$2
-PROCEDURE=$3
+TRIGGER=$3
 
 RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
 RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
 RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
 if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
-  # Stage 1: request the script from the database
-
   # Trim leading & trailing whitespace
-  PROCEDURE="$(echo "$PROCEDURE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  TRIGGER="$(echo "$TRIGGER" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
 
   cat <<EOF > $QUERY_FILE
-  show create procedure $PROCEDURE;
+select pg_get_triggerdef(t.oid)
+from pg_catalog.pg_trigger t
+inner join pg_catalog.pg_class c on t.tgrelid = c.oid
+inner join pg_catalog.pg_namespace n on c.relnamespace = n.oid
+where n.nspname =
+  (case when position('.' in '$TRIGGER') = 0 then 'public'
+        else replace(replace(substr('$TRIGGER', 1, position('.' in '$TRIGGER') - 1), '\`', ''), '"', '')
+   end)
+and t.tgname = 
+  (case when position('.' in '$TRIGGER') = 0 then replace(replace('$TRIGGER', '\`', ''), '"', '')
+        else replace(replace(substr('$TRIGGER', position('.' in '$TRIGGER') + 1), '\`', ''), '"', '')
+   end);
 EOF
 
   # Only remove trailing spaces
   echo "TRAILING_SPACE" > "$RESULT_REQUEST";
-
+  
   # Record that we have completed Stage 1
   touch "$RESULT_REQUEST_STAGE_ONE";
 else
   if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
-    # Stage 2: cleanup the output and return it
     echo "$(cat "$RESULT_REQUEST_OUTPUT" \
-      | sed 's/^[^|]\+ | [^|]\+ | \(CREATE [^|]*\)/\1/g' \
-      | sed 's/ | [^|]\+ | [^|]\+ | [^|]\+$//g; s/[[:space:]]$//g');" \
+      | sed 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g');" \
       > "$RESULT_REQUEST_STAGE_ONE";
 
     echo >> "$RESULT_REQUEST_STAGE_ONE";
@@ -38,6 +45,6 @@ else
   fi;
 
   # We are done
-  touch "$RESULT_REQUEST_FINALIZED";
+  touch "$RESULT_REQUEST_FINALIZED";  
 fi;
 

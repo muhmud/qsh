@@ -258,8 +258,10 @@ function ExecuteSnippet(bp)
     -- Remove the last newline from the result
     result = string.sub(result, 1, string.len(result) - 1)
 
-    cursor:DeleteSelection();
-    bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
+    if string.len(result) > 0 then
+      cursor:DeleteSelection();
+      bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
+    end
   end
 end
 
@@ -297,7 +299,9 @@ function ExecuteNamedSnippet(bp, snippet, delimiter, includeDelimiter)
   -- Remove the last newline from the result
   result = string.sub(result, 1, string.len(result) - 1)
 
-  cursor:DeleteSelection();
-  bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
+  if string.len(result) > 0 then
+    cursor:DeleteSelection();
+    bp.Buf:Insert(buffer.Loc(cursor.Loc.X, cursor.Loc.Y), result)
+  end
 end
 

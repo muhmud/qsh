@@ -18,13 +18,15 @@ EOF
   # Only remove trailing spaces
   echo "TRAILING_SPACE" > "$RESULT_REQUEST";
 else
-  sed -i 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT";
+  if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+    sed -i 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT";
 
-  # Add create view stuff
-  echo "$(echo "CREATE OR REPLACE VIEW $VIEW";echo 'AS';cat "$RESULT_REQUEST_OUTPUT";)" \
-    > "$RESULT_REQUEST_OUTPUT";
+    # Add create view stuff
+    echo "$(echo "CREATE OR REPLACE VIEW $VIEW";echo 'AS';cat "$RESULT_REQUEST_OUTPUT";)" \
+      > "$RESULT_REQUEST_OUTPUT";
 
-  echo >> "$RESULT_REQUEST_OUTPUT";
+    echo >> "$RESULT_REQUEST_OUTPUT";
+  fi;
 
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";  

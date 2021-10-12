@@ -20,7 +20,13 @@ else
   PG_DUMP="pg_dump $QSH_INVOCATION";
 fi;
 
-eval "$PG_DUMP -sO --table=\"$TABLE\"" \
+PG_DUMP_OUTPUT=$($PG_DUMP -sO --table="$TABLE");
+if [[ $? -ne 0 ]]; then
+  echo "$PG_DUMP_OUTPUT" > "$RESULT_REQUEST_OUTPUT";
+  exit -1;
+fi;
+
+echo "$PG_DUMP_OUTPUT" \
   | sed 's/^--.*$//g; s/^SET.*$//g; s/^SELECT.*$//g; /^$/d' \
   > "$RESULT_REQUEST_OUTPUT";
 

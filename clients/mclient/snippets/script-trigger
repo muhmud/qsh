@@ -1,0 +1,26 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TRIGGER=$3
+
+RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+# No pager cleanup
+echo 0 > "$RESULT_REQUEST"
+
+if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
+  # Stage 1: request the script from the database
+  cat <<EOF > $QUERY_FILE
+\d $TRIGGER
+EOF
+
+  # Record that we have completed Stage 1
+  touch "$RESULT_REQUEST_STAGE_ONE";
+else
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";
+fi;
+

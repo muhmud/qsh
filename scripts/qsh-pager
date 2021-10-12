@@ -69,9 +69,6 @@ if [[ -f "$RESULT_REQUEST" ]]; then
     # Don't cleanup the results, i.e. return them as is
     cat > "$RESULT_REQUEST_OUTPUT";
   fi;
-
-  # Signal that we are done
-  touch "$RESULT_REQUEST_COMPLETE";
 else
   # No special processing: call the normal pager
   $QSH_PAGER;

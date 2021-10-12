@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_TMP=/tmp/qsh
+
+CLIENT_PANE_ID=$1
+QUERY_FILE=$2
+
+RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
+RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+
+echo >> "$QUERY_FILE";
+echo "\\! touch '$RESULT_REQUEST_COMPLETE'" >> "$QUERY_FILE";
+echo >> "$QUERY_FILE";
+

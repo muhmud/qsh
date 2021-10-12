@@ -22,11 +22,13 @@ EOF
   # Record that we have completed Stage 1
   touch "$RESULT_REQUEST_STAGE_ONE";
 else
-  sed 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT" \
-    > "$RESULT_REQUEST_STAGE_ONE";
+  if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+    sed 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT" \
+      > "$RESULT_REQUEST_STAGE_ONE";
 
-  # Put the results into the output file
-  cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+    # Put the results into the output file
+    cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+  fi;
 
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";  
