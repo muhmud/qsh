@@ -11,6 +11,9 @@ RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
   # Trim leading & trailing whitespace
   TRIGGER="$(echo "$TRIGGER" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  if [[ ! "$TRIGGER" =~ "." ]]; then
+    TRIGGER=public.$TRIGGER
+  fi;
 
   cat <<EOF > $QUERY_FILE
 select pg_get_triggerdef(t.oid)

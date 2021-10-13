@@ -10,6 +10,9 @@ RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
 if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
   # Trim leading & trailing whitespace
   PROCEDURE="$(echo "$PROCEDURE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  if [[ ! "$PROCEDURE" =~ "." ]]; then
+    PROCEDURE=public.$PROCEDURE
+  fi;
 
   cat <<EOF > $QUERY_FILE
 select pg_get_functiondef('$PROCEDURE'::regproc);

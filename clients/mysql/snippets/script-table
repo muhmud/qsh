@@ -28,6 +28,8 @@ else
       | sed 's/^[^|]\+ | \(CREATE TABLE\)/\1/g' \
       > "$RESULT_REQUEST_STAGE_ONE";
 
+    echo >> "$RESULT_REQUEST_STAGE_ONE";
+
     # Put the results into the output file
     cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
   fi;

@@ -147,16 +147,17 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # Files used for result requests, i.e. where we will return results back to the editor, rather
   # than actually displaying them on the screen. This is used for enhanced query editing.
   RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
+  RESULT_REQUEST_QUERY="${RESULT_REQUEST}.sql";
   RESULT_REQUEST_CONTEXT="${RESULT_REQUEST}.context";
   RESULT_REQUEST_CURSOR="${RESULT_REQUEST}.cursor";
   RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
   RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
-  # Handler for ensuring we can determine when a result request is complete
-  QSH_RESULT_REQUEST_COMPLETE=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-result-request-complete
-  if [[ ! -f "$QSH_RESULT_REQUEST_COMPLETE" ]]; then
-    QSH_RESULT_REQUEST_COMPLETE=$QSH_BASE/clients/generic/qsh-result-request-complete
+  # Client specific handler for handling result requests
+  QSH_RESULT_REQUEST_HANDLER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-result-request-handler
+  if [[ ! -f "$QSH_RESULT_REQUEST_HANDLER" ]]; then
+    QSH_RESULT_REQUEST_HANDLER=$QSH_BASE/clients/generic/qsh-result-request-handler
   fi;
 
   # Delete any previous result request file(s)
@@ -252,7 +253,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
         rm -f "$RESULT_REQUEST_COMPLETE";
 
         # For snippets, execute the requested script file, providing access to the result request 
-        "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
+        "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$RESULT_REQUEST_QUERY" "$SCRIPT_PARAMETERS";
         if [[ $? -ne 0 ]]; then
           # The result request output should contain the error information
           finalize_result_request;
@@ -264,6 +265,9 @@ if [[ -f "$EDITOR_PANE" ]]; then
           finalize_result_request;
           break;
         fi;
+
+        # Generate a new query file with the required additions for result requst processing
+        $QSH_RESULT_REQUEST_HANDLER "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY";
         ;;
     esac;
 
@@ -280,9 +284,6 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
     # For snippets, we will have to wait until the operation is complete, and potentially loop again
     if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]]; then
-      # Handle the end of result request processing appropriately
-      "$QSH_RESULT_REQUEST_COMPLETE" "$CLIENT_PANE_ID" "$QSH_EXECUTE_QUERY";
-
       # Wait for the signal from the pager that we are done
       while [[ ! -f "$RESULT_REQUEST_COMPLETE" ]]; do
         sleep 0.2;

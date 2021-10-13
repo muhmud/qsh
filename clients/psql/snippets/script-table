@@ -13,6 +13,9 @@ RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
 
 # Trim leading & trailing whitespace
 TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+if [[ ! "$TABLE" =~ "." ]]; then
+  TABLE=public.$TABLE
+fi;
 
 if [[ ! -z "$QSH_CONNECTION" ]]; then
   PG_DUMP="~/.qsh/bin/qsh -c pg_dump \"$QSH_CONNECTION\"";
@@ -20,7 +23,7 @@ else
   PG_DUMP="pg_dump $QSH_INVOCATION";
 fi;
 
-PG_DUMP_OUTPUT=$($PG_DUMP -sO --table="$TABLE");
+PG_DUMP_OUTPUT=$($PG_DUMP -sO --section=pre-data --table="$TABLE");
 if [[ $? -ne 0 ]]; then
   echo "$PG_DUMP_OUTPUT" > "$RESULT_REQUEST_OUTPUT";
   exit -1;
