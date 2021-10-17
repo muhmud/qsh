@@ -14,12 +14,16 @@ echo 0 > "$RESULT_REQUEST"
 if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
   # Stage 1: request the script from the database
   cat <<EOF > $QUERY_FILE
-\d $PROCEDURE
+\df $PROCEDURE
 EOF
 
   # Record that we have completed Stage 1
   touch "$RESULT_REQUEST_STAGE_ONE";
 else
+  if [[ -s "$RESULT_REQUEST_OUTPUT" ]]; then
+    echo >> "$RESULT_REQUEST_OUTPUT";
+  fi;
+
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";
 fi;

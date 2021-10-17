@@ -143,7 +143,7 @@ The following key mappings, or similar, can be added to `~/.config/micro/binding
 "Alt-d": "command:QshExecuteNamedScript 'describe'",
 "Alt-r": "command:QshExecuteNamedScript 'select-some'",
 "Alt-v": "command:QshExecuteScript",
-"Alt-Space": "command:QshExecuteSnippet",
+"Alt-i": "command:QshExecuteSnippet",
 "Alt-t": "command:QshExecuteNamedSnippet 'format'"
 ```
 

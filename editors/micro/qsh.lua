@@ -106,7 +106,7 @@ function FindScriptTarget(bp)
     local endLoc = buffer.Loc(string.len(util.String(bp.Buf:LineBytes(cursor.Loc.Y))), cursor.Loc.Y)
 
     -- Find the previous and next instances of the target delimiter
-    local targetDelimiter = "[^A-Za-z0-9_.]"
+    local targetDelimiter = "[^A-Za-z0-9_.-]"
     local targetStart = bp.Buf:FindNext(targetDelimiter, startLoc, cursorLoc, cursorLoc, false, true)
     local targetEnd = bp.Buf:FindNext(targetDelimiter, cursorLoc, endLoc, cursorLoc, true, true)
 

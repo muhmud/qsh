@@ -250,7 +250,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
         # We have more data to process, so ensure the pager returns results to use
         touch "$RESULT_REQUEST";
-        rm -f "$RESULT_REQUEST_COMPLETE";
+        rm -f "$RESULT_REQUEST_QUERY" "$RESULT_REQUEST_COMPLETE";
 
         # For snippets, execute the requested script file, providing access to the result request 
         "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$RESULT_REQUEST_QUERY" "$SCRIPT_PARAMETERS";
@@ -265,6 +265,9 @@ if [[ -f "$EDITOR_PANE" ]]; then
           finalize_result_request;
           break;
         fi;
+
+        # Remove temporary files
+        rm -f "$RESULT_REQUEST_OUTPUT";
 
         # Generate a new query file with the required additions for result requst processing
         $QSH_RESULT_REQUEST_HANDLER "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY";

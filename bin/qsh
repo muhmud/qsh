@@ -58,15 +58,13 @@ if [[ "$CONNECTION_JSON" != *.json ]]; then
 fi;
 
 CONNECTION_FILE=$QSH_CONNECTIONS/$CONNECTION_JSON
+CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.$(basename "$CONNECTION_FILE").reg
 if [[ ! -f "$CONNECTION_FILE" ]]; then
   # Try to perform a direct invocation
   CLIENT=$CONNECTION
   INVOCATION="$*"
   PASSWORD=null
   PROMPT=true
-
-  CONNECTION=$(basename "$CONNECTION_FILE");
-  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
 
   CLIENT_NAME=$(basename "$CLIENT");
   if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then

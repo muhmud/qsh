@@ -1,0 +1,25 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  with it (id, idx) as (values (0, 'INDEX'), (4, 'IMPRINTS INDEX'), (5, 'ORDERED INDEX'))
+  select s.name as TABLE_SCHEMA, t.name as TABLE_NAME, i.name as INDEX_NAME,
+         (case when k.name is null then false else true end) as IS_UNIQUE,
+         it.idx as INDEX_TYPE,
+         sys.group_concat(c.name, ', ') as INDEX_COLUMNS
+  from sys.idxs i
+  left join sys.keys k on i.name = k.name
+  left join sys._tables t on i.table_id = t.id
+  left join sys.schemas s on t.schema_id = s.id
+  left join sys.objects kc on i.id = kc.id
+  left join sys._columns c on i.table_id = c.table_id and kc.name = c.name
+  left join it on i.type = it.id
+  where not t.system
+  group by s.name, t.name, i.name, k.name, it.idx
+  order by 1, 2, 3
+) t
+$QUERY_OPTIMIZATION;
+EOF
+
