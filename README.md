@@ -35,6 +35,10 @@ $endif
 $if psql
   "\eq": '\\e\C-m'
 $endif
+
+$if MAPIClient
+  "\eq": '\ee'
+$endif
 ```
 
 You can currently use either `vim`/`nvim` or `micro`.
@@ -236,11 +240,17 @@ Snippets are similar to scripts, however, the results are injected into the edit
 
 The snippets currently available are:
 
-* `columns(<table-name>)` - Get a comma-separated list of column names for a particular table
-* `script-table(<table-name>)` and `script-function(<function-name>)` - Script out a table or function *(MySQL only)*
-* `script(<object-name>)` - Script out a database table, view, function, or procedure, etc. *(MonetDB only)*
+* General
+** `columns(<table-name>)` - Get a comma-separated list of column names for a particular table
 
-There should be some form of `postgresql` scripting functionality coming soon, as well as more variations for `mysql`.
+* Scripting
+** `script-function(<function-name>)` - Script out a function
+** `script-procedure(<procedure-name>)` - Script out a procedure
+** `script-table(<table-name>)` - Script out a table
+** `script-trigger(<trigger-name>)` - Script out a trigger
+** `script-view(<view-name>)` - Script out a view
+
+**Note: When scripting tables for `postgresql`, the invocation of `psql` must be passed to `pg_dump`. If the invocation involves typing in a password, you will be prompted to enter it. For this reason, it may be better to [register a connection](https://github.com/muhmud/qsh/#registering-connections).**
 
 #### Named Snippets
 
