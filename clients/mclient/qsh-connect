@@ -10,12 +10,10 @@ if [[ "$VANILLA" != "true" ]]; then
 fi;
 
 if [[ -f "$CONNECTION_FILE" ]]; then
-  CONNECTION=$(basename "$CONNECTION_FILE");
-  CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
   export DOTMONETDBFILE=$CLIENT_CONNECTION_FILE
 
   INVOCATION="$(echo "$INVOCATION" | sed 's/\(.*\) -u.*/\1/g')";
 fi;
 
-eval "$CLIENT $INVOCATION --width=-1 $QSH_PAGER";
+eval "QSH_CONNECTION=\"$CONNECTION\" QSH_INVOCATION=\"$INVOCATION\" $CLIENT $INVOCATION --width=-1 $QSH_PAGER";
 

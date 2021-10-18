@@ -83,6 +83,11 @@ if g:qsh_enable_key_mappings == 1
 endif
 
 function s:FindNonVisualLineRange(delimiter, includeDelimiter)
+  let current_char = matchstr(getline('.'), '\%' . col('.') . 'c.')
+  if current_char == a:delimiter
+    normal h
+  endif
+
   " Search for the previous delimiter
   let [ previousLine, previousPos ] = searchpos(a:delimiter, "bnWe")
 
@@ -102,6 +107,10 @@ function s:FindNonVisualLineRange(delimiter, includeDelimiter)
   elseif nextPos == 1 && a:includeDelimiter == 0
     let nextLine -= 1
     let nextPos = col([ nextLine, col('$') ])
+  endif
+
+  if current_char == a:delimiter
+    normal l
   endif
 
   let rangeStart = getpos(".")
@@ -142,7 +151,7 @@ function s:FindTargetRange()
   let rangeStart = getpos(".")
   let rangeEnd = getpos(".")
 
-  let [ matchLine, matchPos ] = searchpos("[^A-Za-z0-9_.]", "bne", line("."))
+  let [ matchLine, matchPos ] = searchpos("[^A-Za-z0-9_.-]", "bne", line("."))
   if matchLine != 0 
     let rangeStart[1] = matchLine
     let rangeStart[2] = matchPos + 1
@@ -150,7 +159,7 @@ function s:FindTargetRange()
     let rangeStart[2] = 1
   endif
 
-  let [ matchLine, matchPos ] = searchpos("[^A-Za-z0-9_.]", "n", line("."))
+  let [ matchLine, matchPos ] = searchpos("[^A-Za-z0-9_.-]", "n", line("."))
   if matchLine != 0 
     let rangeEnd[1] = matchLine
     let rangeEnd[2] = matchPos - rangeStart[2]
@@ -190,7 +199,7 @@ function QshExecuteSelection() range
   normal gv
 
   " Write to the requested file
-  call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY)
+  call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY, "b")
 
   echo "Qsh: Sending Query >>>"
   call system($QSH)

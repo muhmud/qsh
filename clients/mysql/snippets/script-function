@@ -12,23 +12,30 @@ if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
   # Stage 1: request the script from the database
 
   # Trim leading & trailing whitespace
-  TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  FUNCTION="$(echo "$FUNCTION" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
 
   cat <<EOF > $QUERY_FILE
   show create function $FUNCTION;
 EOF
 
+  # Only remove trailing spaces
+  echo "TRAILING_SPACE" > "$RESULT_REQUEST";
+
   # Record that we have completed Stage 1
   touch "$RESULT_REQUEST_STAGE_ONE";
 else
-  # Stage 2: cleanup the output and return it
-  cat "$RESULT_REQUEST_OUTPUT" \
-    | sed 's/^[^|]\+ | [^|]\+ | \(CREATE .* FUNCTION\)/\1/g' \
-    | sed 's/^  //g; s/ | [^|]\+ | [^|]\+ | [^|]\+$/;/g' \
-    > "$RESULT_REQUEST_STAGE_ONE";
+  if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+    # Stage 2: cleanup the output and return it
+    echo "$(cat "$RESULT_REQUEST_OUTPUT" \
+      | sed 's/^[^|]\+ | [^|]\+ | \(CREATE [^|]*\)/\1/g' \
+      | sed 's/ | [^|]\+ | [^|]\+ | [^|]\+$//g; s/[[:space:]]$//g');" \
+      > "$RESULT_REQUEST_STAGE_ONE";
 
-  # Put the results into the output file
-  cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+    echo >> "$RESULT_REQUEST_STAGE_ONE";
+
+    # Put the results into the output file
+    cat "$RESULT_REQUEST_STAGE_ONE" > "$RESULT_REQUEST_OUTPUT";
+  fi;
 
   # We are done
   touch "$RESULT_REQUEST_FINALIZED";

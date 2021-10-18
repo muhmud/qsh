@@ -1,0 +1,41 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TRIGGER=$3
+
+RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
+  # Trim leading & trailing whitespace
+  TRIGGER="$(echo "$TRIGGER" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+  # Stage 1: request the script from the database
+  cat <<EOF > $QUERY_FILE
+select tr.statement from sys.tables t
+inner join sys.schemas s on t.schema_id = s.id
+inner join sys.triggers tr on tr.table_id = t.id
+where s.name =
+  (case when locate('.', '$TRIGGER') = 0 then 'sys'
+        else replace(replace(substr('$TRIGGER', 1, locate('.', '$TRIGGER') - 1), '\`', ''), '"', '')
+   end)
+and tr.name = 
+  (case when locate('.', '$TRIGGER') = 0 then replace(replace('$TRIGGER', '\`', ''), '"', '')
+        else replace(replace(substr('$TRIGGER', locate('.', '$TRIGGER') + 1), '\`', ''), '"', '')
+   end);
+
+EOF
+
+  # Record that we have completed Stage 1
+  touch "$RESULT_REQUEST_STAGE_ONE";
+else
+  if [[ -s "$RESULT_REQUEST_OUTPUT" ]]; then
+    echo >> "$RESULT_REQUEST_OUTPUT";
+  fi;
+
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";
+fi;
+

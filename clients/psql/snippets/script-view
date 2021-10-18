@@ -1,0 +1,35 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+VIEW=$3
+
+# Trim leading & trailing whitespace
+VIEW="$(echo "$VIEW" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+if [[ ! "$VIEW" =~ "." ]]; then
+  VIEW=public.$VIEW
+fi;
+
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+
+if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
+  cat <<EOF > $QUERY_FILE
+select pg_get_viewdef('$VIEW', true);
+EOF
+
+  # Only remove trailing spaces
+  echo "TRAILING_SPACE" > "$RESULT_REQUEST";
+else
+  sed -i 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT";
+
+  # Add create view stuff
+  echo "$(echo "CREATE OR REPLACE VIEW $VIEW";echo 'AS';cat "$RESULT_REQUEST_OUTPUT";)" \
+    > "$RESULT_REQUEST_OUTPUT";
+
+  echo >> "$RESULT_REQUEST_OUTPUT";
+
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+

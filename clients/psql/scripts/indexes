@@ -1,0 +1,29 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select *
+from (
+  select i.TABLE_SCHEMA, i.TABLE_NAME, i.INDEX_NAME, i.IS_UNIQUE,
+         string_agg(c.column_name, ', ' order by i.INDEX_COLUMN_ID) as INDEX_COLUMNS
+  from (
+    select tn.nspname as TABLE_SCHEMA, tc.relname as TABLE_NAME, ic.relname as INDEX_NAME,
+           i.indisunique as IS_UNIQUE,
+           indkey as INDEX_COLUMNS,
+           unnest(indkey) as INDEX_COLUMN_ID
+    from pg_index i
+    inner join pg_class tc on i.indrelid = tc.oid
+    inner join pg_namespace tn on tc.relnamespace = tn.oid
+    inner join pg_class ic on i.indexrelid = ic.oid
+  ) i
+  inner join information_schema.columns c 
+    on i.TABLE_SCHEMA = c.TABLE_SCHEMA and i.TABLE_NAME = c.TABLE_NAME and i.INDEX_COLUMN_ID = c.ordinal_position
+  where i.table_schema != 'information_schema'
+  and i.table_schema not like 'pg\_%'
+  group by i.TABLE_SCHEMA, i.TABLE_NAME, i.INDEX_NAME, i.IS_UNIQUE
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

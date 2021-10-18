@@ -77,7 +77,8 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
   EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
-                                             QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' \
+                                             QSH_CONNECTION='$QSH_CONNECTION' \
+                                             QSH_INVOCATION='$QSH_INVOCATION' \
                                              QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
                                              QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' \
                                              QSH_PAGER='$QSH_PAGER' \
@@ -146,11 +147,18 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # Files used for result requests, i.e. where we will return results back to the editor, rather
   # than actually displaying them on the screen. This is used for enhanced query editing.
   RESULT_REQUEST="$QSH_TMP/client.${CLIENT_PANE_ID}.result-request";
+  RESULT_REQUEST_QUERY="${RESULT_REQUEST}.sql";
   RESULT_REQUEST_CONTEXT="${RESULT_REQUEST}.context";
   RESULT_REQUEST_CURSOR="${RESULT_REQUEST}.cursor";
   RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
   RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
   RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+  # Client specific handler for handling result requests
+  QSH_RESULT_REQUEST_HANDLER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-result-request-handler
+  if [[ ! -f "$QSH_RESULT_REQUEST_HANDLER" ]]; then
+    QSH_RESULT_REQUEST_HANDLER=$QSH_BASE/clients/generic/qsh-result-request-handler
+  fi;
 
   # Delete any previous result request file(s)
   rm -f ${RESULT_REQUEST}*;
@@ -163,6 +171,17 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
   # The default operation type
   OPERATION_TYPE=$OPERATION_TYPE_QUERY
+
+  # Helper function to finalize a result request
+  function finalize_result_request {
+    if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+      # Print the output so that it can be picked up by the editor
+      cat "$RESULT_REQUEST_OUTPUT";
+    fi;
+
+    # Delete any previous result request file(s)
+    rm -f ${RESULT_REQUEST}*;
+  }
 
   # Check for parameters, which are used to override the default 'sql' action and perform alternative
   # processing, such as executing a script
@@ -225,27 +244,33 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
       $OPERATION_TYPE_SNIPPET)
         if [[ -f "$RESULT_REQUEST_FINALIZED" ]]; then
-          # Print the output so that it can be picked up by the editor
-          cat "$RESULT_REQUEST_OUTPUT";
+          finalize_result_request;
           break;
         fi;
 
         # We have more data to process, so ensure the pager returns results to use
         touch "$RESULT_REQUEST";
-        rm -f "$RESULT_REQUEST_COMPLETE";
+        rm -f "$RESULT_REQUEST_QUERY" "$RESULT_REQUEST_COMPLETE";
 
         # For snippets, execute the requested script file, providing access to the result request 
-        "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY" "$SCRIPT_PARAMETERS";
+        "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$RESULT_REQUEST_QUERY" "$SCRIPT_PARAMETERS";
         if [[ $? -ne 0 ]]; then
+          # The result request output should contain the error information
+          finalize_result_request;
           exit -1;
         fi;
 
         # Check again to see if the result has been finalized
         if [[ -f "$RESULT_REQUEST_FINALIZED" ]]; then
-          # Print the output so that it can be picked up by the editor
-          cat "$RESULT_REQUEST_OUTPUT";
+          finalize_result_request;
           break;
         fi;
+
+        # Remove temporary files
+        rm -f "$RESULT_REQUEST_OUTPUT";
+
+        # Generate a new query file with the required additions for result requst processing
+        $QSH_RESULT_REQUEST_HANDLER "$RESULT_REQUEST" "$QSH_EXECUTE_QUERY";
         ;;
     esac;
 

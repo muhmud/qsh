@@ -1,0 +1,17 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select TABLE_SCHEMA, TABLE_NAME, INDEX_NAME,
+         (case when NON_UNIQUE = 0 then 'true' else 'false' end) as IS_UNIQUE,
+         INDEX_TYPE,
+         GROUP_CONCAT(COLUMN_NAME order by SEQ_IN_INDEX separator ', ') AS INDEX_COLUMNS
+  from INFORMATION_SCHEMA.STATISTICS
+  GROUP BY TABLE_SCHEMA, TABLE_NAME, INDEX_NAME
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

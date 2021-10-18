@@ -1,31 +1,11 @@
 #!/bin/bash
 
-QSH_BASE=~/.qsh
-QSH_CONNECTIONS=$QSH_BASE/connections
+CLIENT_OPTIONS_FILE=$QSH_CLIENTS/mysql/client-options
+[[ -s "$CLIENT_OPTIONS_FILE" ]] && CLIENT_OPTIONS="$(cat "$CLIENT_OPTIONS_FILE")";
 
-CONNECTION_FILE=$1
-PASSWORD=$2
-
-CONNECTION=$(basename "$CONNECTION_FILE");
-CLIENT_CONNECTION_FILE=$QSH_CONNECTIONS/.${CONNECTION}.reg
-
-export MYSQL_TEST_LOGIN_FILE=$CLIENT_CONNECTION_FILE
-rm -f $MYSQL_TEST_LOGIN_FILE;
-
-function set_mysql_config {
-  read -r -d '' MYSQL_CONFIG_SETTER <<EOF
-    set timeout -1
-    log_user 0
-    spawn mysql_config_editor set --login-path=qsh -p
-    match_max 100000
-    expect -exact "Enter password: "
-    send -- '$PASSWORD'
-    send -- "\r"
-    interact { -o eof {exit} }
+cat <<EOF > "$CLIENT_CONNECTION_FILE"
+[client]
+password="$PASSWORD"
+$CLIENT_OPTIONS
 EOF
-
-  expect -c "$MYSQL_CONFIG_SETTER";
-}
-
-set_mysql_config;
 

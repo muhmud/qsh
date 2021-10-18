@@ -1,0 +1,31 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+PROCEDURE=$3
+
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+
+if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
+  # Trim leading & trailing whitespace
+  PROCEDURE="$(echo "$PROCEDURE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+  if [[ ! "$PROCEDURE" =~ "." ]]; then
+    PROCEDURE=public.$PROCEDURE
+  fi;
+
+  cat <<EOF > $QUERY_FILE
+select pg_get_functiondef('$PROCEDURE'::regproc);
+EOF
+
+  # Only remove trailing spaces
+  echo "TRAILING_SPACE" > "$RESULT_REQUEST";
+else
+  if [[ -f "$RESULT_REQUEST_OUTPUT" ]]; then
+    sed -i 's/^[[:space:]]//g; s/[[:space:]]*[+]$//g' "$RESULT_REQUEST_OUTPUT";
+  fi;
+
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+
