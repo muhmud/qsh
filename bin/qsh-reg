@@ -158,12 +158,6 @@ shift 1;
 CLIENT=$1
 [[ -z "$CLIENT" ]] && usage;
 
-CLIENT_NAME=$(basename "$CLIENT");
-if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
-  echo "unknown client '$CLIENT_NAME'";
-  exit -1;
-fi;
-
 shift 1;
 INVOCATION="$*"
 

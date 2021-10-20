@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QSH_SCRIPTS=$QSH_BASE/scripts
+QSH_CLIENTS=$QSH_BASE/clients
+
+if [[ "$VANILLA" != "true" ]]; then
+  export RLWRAP_EDITOR=$QSH_SCRIPTS/qsh
+fi;
+
+if [[ -f "$CONNECTION_FILE" ]]; then
+  eval "QSH_CONNECTION=\"$CONNECTION\" $QSH_SCRIPTS/rlwrap.sh $CLIENT $INVOCATION";
+else
+  eval "QSH_INVOCATION=\"$INVOCATION\" $QSH_SCRIPTS/rlwrap.sh $CLIENT $INVOCATION";
+fi;
+

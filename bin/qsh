@@ -68,8 +68,7 @@ if [[ ! -f "$CONNECTION_FILE" ]]; then
 
   CLIENT_NAME=$(basename "$CLIENT");
   if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
-    echo "invalid connection/invocation";
-    exit -1;
+    CLIENT_NAME=generic
   fi;
 
   # Invoke the client
@@ -81,6 +80,9 @@ CONNECTION_DATA=$(cat "$CONNECTION_FILE");
 
 CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
 CLIENT_NAME=$(basename "$CLIENT");
+if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+  CLIENT_NAME=generic
+fi;
 
 INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
