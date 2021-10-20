@@ -8,4 +8,3 @@ OSH_PROMPT=$5
 OUTPUT_FILE=$6
 
 touch "$OUTPUT_FILE";
-tmux send-keys -t "$PANE_ID" "C-m";

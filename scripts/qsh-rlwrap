@@ -32,13 +32,15 @@ Usage: rlwrap -z $name <command>
 Provides handling of input/output for compatibility with QSH
 DOC
 
-my $prompt;
-my $pager;
-
 use constant QSH_RLWRAP_SHELL_COMMAND => $ENV{'QSH_RLWRAP_SHELL_COMMAND'};
 use constant QSH_RLWRAP_SHELL_COMMAND_LENGTH => length(QSH_RLWRAP_SHELL_COMMAND);
-
 use constant QSH_RLWRAP_PAGER => $ENV{'QSH_RLWRAP_PAGER'};
+use constant QSH_RLWRAP_CLIENT_PANE => $ENV{'QSH_RLWRAP_CLIENT_PANE'};
+
+my $initialized;
+my $prompt;
+
+my $pager = QSH_RLWRAP_PAGER;
 
 $filter->prompts_are_never_empty(1);
 $filter->input_handler(\&input);
@@ -48,11 +50,9 @@ $filter->echo_handler(\&echo);
 
 $filter->run;
 
-sub input {
-  $pager = QSH_RLWRAP_PAGER;
+sub handle_shell_command {
   my $input = $_;
 
-  # Handle shell commands
   my $is_shell_command = substr($input, 0, QSH_RLWRAP_SHELL_COMMAND_LENGTH) eq QSH_RLWRAP_SHELL_COMMAND;
   if ($is_shell_command) {
     my $shell_command = substr($input, QSH_RLWRAP_SHELL_COMMAND_LENGTH);
@@ -63,17 +63,35 @@ sub input {
   return $input;
 }
 
+sub input {
+  my $input = $_;
+
+  # Handle shell commands
+  $input = handle_shell_command($input);
+
+  return $input;
+}
+
 sub output {
-  return $pager ? "" : $_;
+  return $initialized ? "" : $_;
 }
 
 sub prompt {
   $prompt = $_;
-  if ($pager) {
+  if ($initialized) {
     local $SIG{PIPE} = 'IGNORE'; # we don't want to die if the pipeline quits
     open PAGER, "| $pager";
     print PAGER $filter->cumulative_output;
     close PAGER; # this waits until pager has finished
+  } else {
+    if (-e QSH_RLWRAP_CLIENT_PANE) {
+      $filter->send_output_oob("${prompt}\n");
+      $filter->send_output_oob(" qsh (generic)\n");
+      $filter->send_output_oob("---------------\n");
+      $filter->send_output_oob("  INITIALIZED\n");
+      $filter->send_output_oob("\n");
+      $initialized = 1;
+    }
   }
 
   return $prompt;
