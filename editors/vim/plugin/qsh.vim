@@ -96,6 +96,12 @@ endfunction
 
 command QshEnable :call QshEnable()
 
+function QshDisable()
+  let s:qsh_enabled = 0
+endfunction
+
+command QshDisable :call QshDisable()
+
 " By default, keys will be mapped
 if !exists("g:qsh_enable_key_mappings")
   let g:qsh_enable_key_mappings=1
@@ -210,6 +216,10 @@ function s:VisuallySelectRange(rangeStart, rangeEnd)
 endfunction
 
 function QshExecute(delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   " Write to the requested file
   call writefile(s:FindNonVisualLines(a:delimiter, a:includeDelimiter), $QSH_EXECUTE_QUERY)
 
@@ -218,6 +228,10 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
 endfunction
 
 function QshExecuteSelection() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -229,6 +243,10 @@ function QshExecuteSelection() range
 endfunction
 
 function QshExecuteLine()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   " Write to the requested file
   call writefile([ getline(".") ], $QSH_EXECUTE_QUERY, "b")
 
@@ -237,6 +255,10 @@ function QshExecuteLine()
 endfunction
 
 function QshExecuteAll()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   " Write to the requested file
   call writefile(getline(1, line('$')), $QSH_EXECUTE_QUERY)
 
@@ -245,6 +267,10 @@ function QshExecuteAll()
 endfunction
 
 function QshExecuteScript()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
@@ -255,6 +281,10 @@ function QshExecuteScript()
 endfunction
 
 function QshExecuteScriptVisually() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -265,6 +295,10 @@ function QshExecuteScriptVisually() range
 endfunction
 
 function QshExecuteNamedScript(script)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
@@ -275,6 +309,10 @@ function QshExecuteNamedScript(script)
 endfunction
 
 function QshExecuteNamedScriptVisually(script) range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -286,6 +324,10 @@ function QshExecuteNamedScriptVisually(script) range
 endfunction
 
 function QshExecuteNamedScriptNonVisually(script, delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
@@ -359,6 +401,10 @@ function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
 endfunction
 
 function QshExecuteSnippet()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Set range start/end to the current position
@@ -389,6 +435,10 @@ function QshExecuteSnippet()
 endfunction
 
 function QshExecuteSnippetVisually() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -400,6 +450,10 @@ function QshExecuteSnippetVisually() range
 endfunction
 
 function QshExecuteNamedSnippet(snippet)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Find the target range
@@ -410,6 +464,10 @@ function QshExecuteNamedSnippet(snippet)
 endfunction
 
 function QshExecuteNamedSnippetVisually(snippet) range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -421,6 +479,10 @@ function QshExecuteNamedSnippetVisually(snippet) range
 endfunction
 
 function QshExecuteNamedSnippetNonVisually(snippet, delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Get the start and end of the range
