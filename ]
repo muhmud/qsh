@@ -1,0 +1,90 @@
+#!/usr/bin/env perl
+
+# This is maybe the most practical of the filter examples. Is is also
+# a test for rlwrap's signal handling.
+#
+# At present, a CTRL-C in a pager will also kill rlwrap (bad)
+
+use lib ($ENV{RLWRAP_FILTERDIR} or ".");
+use RlwrapFilter;
+use POSIX qw(:signal_h);
+use strict;
+
+# We want any piped pager to receive SIGWINCH.
+# SIGWINCH is not in POSIX, which means that POSIX.pm doesn't
+# know about it. We use 'kill -l' to find it.
+
+my @signals = split /\s+/, `kill -l`; # yuck!
+for (my $signo = 1; $signals[$signo-1]; $signo++) {
+  if ($signals[$signo-1] eq 'WINCH') {
+    my $sigset_unblock = POSIX::SigSet->new($signo);
+    unless (defined sigprocmask(SIG_UNBLOCK, $sigset_unblock)) {
+      die "Could not unblock signals: $!\n";
+    }
+  }
+}
+
+my $filter = new RlwrapFilter;
+my $name = $filter->name;
+
+$filter->help_text(<<DOC);
+Usage: rlwrap -z $name <command>
+Provides handling of input/output for compatibility with QSH
+DOC
+
+my $prompt;
+my $pager;
+
+use constant QSH_RLWRAP_SHELL_COMMAND => $ENV{'QSH_RLWRAP_SHELL_COMMAND'};
+use constant QSH_RLWRAP_SHELL_COMMAND_LENGTH => length(QSH_RLWRAP_SHELL_COMMAND);
+
+use constant QSH_RLWRAP_PAGER => $ENV{'QSH_RLWRAP_PAGER'};
+
+$filter->prompts_are_never_empty(1);
+$filter->input_handler(\&input);
+$filter->output_handler(\&output);
+$filter->prompt_handler(\&prompt);
+$filter->echo_handler(\&echo);
+
+$filter->run;
+
+sub input {
+  $pager = QSH_RLWRAP_PAGER;
+  my $input = $_;
+
+  # Handle shell commands
+  my $is_shell_command = substr($input, 0, QSH_RLWRAP_SHELL_COMMAND_LENGTH) == QSH_RLWRAP_SHELL_COMMAND;
+  if ($is_shell_command) {
+    my $shell_command = substr($input, QSH_RLWRAP_SHELL_COMMAND_LENGTH);
+    system($shell_command);
+    return "";
+  }
+
+  return $input;
+}
+
+sub output {
+  return $pager ? "" : $_;
+}
+
+sub prompt {
+  $prompt = $_;
+  if ($pager) {
+    local $SIG{PIPE} = 'IGNORE'; # we don't want to die if the pipeline quits
+    open PAGER, "| $pager";
+    print PAGER $filter->cumulative_output;
+    close PAGER; # this waits until pager has finished
+  }
+
+  return $prompt;
+}
+
+sub echo {
+  my $data = $_;
+  if ($pager) {
+    return "${prompt}${data}";
+  }
+
+  return $data;
+}
+
