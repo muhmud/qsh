@@ -7,85 +7,102 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Only do this when not done yet for this buffer
-if exists("b:did_qsh_ftplugin")
+if exists("g:loaded_qsh")
   finish
 endif
-let b:did_qsh_ftplugin = 1
+let g:loaded_qsh = 1
+
+" Script variable(s)
+let s:qsh_enabled = $QSH_ENABLE == 1 ? 1 : 0
+let s:qsh_keys_mapped = 0
 
 function QshApplyDefaultKeyMappings()
-  " Alt+e (for execute)
-  vnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteSelection()<CR>
-  vnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteSelection()<CR>
-  vnoremap <silent> <buffer> <unique> <F5> :call QshExecuteSelection()<CR>
-  inoremap <silent> <buffer> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
-  inoremap <silent> <buffer> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
-  inoremap <silent> <buffer> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteLine()<CR>
-  nnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteLine()<CR>
-  nnoremap <silent> <buffer> <unique> <F5> :call QshExecuteLine()<CR>
+  if s:qsh_keys_mapped == 0
+    " Alt+e (for execute)
+    vnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteSelection()<CR>
+    vnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteSelection()<CR>
+    vnoremap <silent> <buffer> <unique> <F5> :call QshExecuteSelection()<CR>
+    inoremap <silent> <buffer> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
+    inoremap <silent> <buffer> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
+    inoremap <silent> <buffer> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteLine()<CR>
+    nnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteLine()<CR>
+    nnoremap <silent> <buffer> <unique> <F5> :call QshExecuteLine()<CR>
 
-  " Alt+y
-  inoremap <silent> <buffer> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
-  inoremap <silent> <buffer> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>y :call QshExecuteAll()<CR>
-  nnoremap <silent> <buffer> <unique> <M-y> :call QshExecuteAll()<CR>
+    " Alt+y
+    inoremap <silent> <buffer> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
+    inoremap <silent> <buffer> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>y :call QshExecuteAll()<CR>
+    nnoremap <silent> <buffer> <unique> <M-y> :call QshExecuteAll()<CR>
 
-  " Alt+g (for go)
-  inoremap <silent> <buffer> <unique> <Esc>g <C-O>:call QshExecute()<CR>
-  inoremap <silent> <buffer> <unique> <M-g> <C-O>:call QshExecute()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>g :call QshExecute()<CR>
-  nnoremap <silent> <buffer> <unique> <M-g> :call QshExecute()<CR>
+    " Alt+g (for go)
+    inoremap <silent> <buffer> <unique> <Esc>g <C-O>:call QshExecute()<CR>
+    inoremap <silent> <buffer> <unique> <M-g> <C-O>:call QshExecute()<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>g :call QshExecute()<CR>
+    nnoremap <silent> <buffer> <unique> <M-g> :call QshExecute()<CR>
 
-  " Alt+G
-  inoremap <silent> <buffer> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
-  inoremap <silent> <buffer> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
-  nnoremap <silent> <buffer> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
+    " Alt+G
+    inoremap <silent> <buffer> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
+    inoremap <silent> <buffer> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
+    nnoremap <silent> <buffer> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
 
-  " Alt+d (for describe)
-  vnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
-  vnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
-  nnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
-  inoremap <silent> <buffer> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
-  inoremap <silent> <buffer> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
+    " Alt+d (for describe)
+    vnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
+    vnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
+    nnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
+    inoremap <silent> <buffer> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
+    inoremap <silent> <buffer> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
 
-  " Alt+r (for rows)
-  vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
-  vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
-  nnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
-  inoremap <silent> <buffer> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
-  inoremap <silent> <buffer> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
+    " Alt+r (for rows)
+    vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
+    vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
+    nnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
+    inoremap <silent> <buffer> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
+    inoremap <silent> <buffer> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
 
-  " Alt+t (for tidy)
-  vnoremap <silent> <buffer> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
-  vnoremap <silent> <buffer> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
+    " Alt+t (for tidy)
+    vnoremap <silent> <buffer> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
+    vnoremap <silent> <buffer> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
 
-  " Alt+v
-  vnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
-  vnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScript()<CR>
-  nnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScript()<CR>
-  inoremap <silent> <buffer> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
-  inoremap <silent> <buffer> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
+    " Alt+v
+    vnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
+    vnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
+    nnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScript()<CR>
+    nnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScript()<CR>
+    inoremap <silent> <buffer> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
+    inoremap <silent> <buffer> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
 
-  " Alt+Space
-  vnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
-  vnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
-  nnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippet()<CR>
-  inoremap <silent> <buffer> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
-  inoremap <silent> <buffer> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+    " Alt+Space
+    vnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
+    vnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
+    nnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
+    nnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippet()<CR>
+    inoremap <silent> <buffer> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
+    inoremap <silent> <buffer> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+
+    let s:qsh_keys_mapped = 1
+  endif
 endfunction
+
+function QshEnable()
+  let s:qsh_enabled = 1
+  if g:qsh_enable_key_mappings == 1
+    call QshApplyDefaultKeyMappings()
+  endif
+endfunction
+
+command QshEnable :call QshEnable()
 
 " By default, keys will be mapped
 if !exists("g:qsh_enable_key_mappings")
   let g:qsh_enable_key_mappings=1
 endif
 
-if g:qsh_enable_key_mappings == 1
-  call QshApplyDefaultKeyMappings()
+if s:qsh_enabled == 1
+  call QshEnable()
 endif
 
 function s:FindNonVisualLineRange(delimiter, includeDelimiter)

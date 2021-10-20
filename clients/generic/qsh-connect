@@ -5,6 +5,12 @@ QSH_CLIENTS=$QSH_BASE/clients
 
 if [[ "$VANILLA" != "true" ]]; then
   export RLWRAP_EDITOR=$QSH_SCRIPTS/qsh
+
+  if [[ -z "$QSH_PAGER" ]]; then
+    if [[ ! -z "$REPL_MODE" ]]; then
+      export QSH_PAGER=cat
+    fi;
+  fi;
 fi;
 
 if [[ -f "$CONNECTION_FILE" ]]; then

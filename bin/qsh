@@ -18,11 +18,16 @@ function usage {
   fi;
 
   echo "usage: qsh <connection> | <invocation> ...";
+  echo "       qsh -r <invocation> ..."
   echo "       qsh -c <command> <connection> ..."
   echo;
   echo "Connections can be registered using qsh-reg, otherwise just invoke your";
   echo "sql client to connect to a data source. In both cases, additional";
   echo "command-line arguments can be provided."
+  echo;
+  echo "When using qsh with a generic tool, specify -r to use repl mode, as opposed to";
+  echo "the default of sql mode. This can sometimes provide a better user experience";
+  echo "when you see screen text displayed incorrectly.";
   echo;
   echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
   echo "make use of a registered connection, providing additional arguments as";
@@ -35,10 +40,13 @@ function usage {
   exit 0;
 }
 
-while getopts "c:" arg; do
+while getopts "rc:" arg; do
   case $arg in
     c)
       CLIENT_COMMAND=$OPTARG
+      ;;
+    r)
+      REPL_MODE=1
       ;;
   esac
 done

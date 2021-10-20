@@ -84,6 +84,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
   EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
+                                             QSH_ENABLE=1 \
                                              QSH_CONNECTION='$QSH_CONNECTION' \
                                              QSH_INVOCATION='$QSH_INVOCATION' \
                                              QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
