@@ -17,6 +17,12 @@ function QshApplyDefaultKeyMappings()
   vnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteSelection()<CR>
   vnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteSelection()<CR>
   vnoremap <silent> <buffer> <unique> <F5> :call QshExecuteSelection()<CR>
+  inoremap <silent> <buffer> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
+  inoremap <silent> <buffer> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
+  inoremap <silent> <buffer> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
+  nnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteLine()<CR>
+  nnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteLine()<CR>
+  nnoremap <silent> <buffer> <unique> <F5> :call QshExecuteLine()<CR>
 
   " Alt+y
   inoremap <silent> <buffer> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
@@ -200,6 +206,14 @@ function QshExecuteSelection() range
 
   " Write to the requested file
   call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY, "b")
+
+  echo "Qsh: Sending Query >>>"
+  call system($QSH)
+endfunction
+
+function QshExecuteLine()
+  " Write to the requested file
+  call writefile([ getline(".") ], $QSH_EXECUTE_QUERY, "b")
 
   echo "Qsh: Sending Query >>>"
   call system($QSH)

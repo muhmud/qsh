@@ -187,9 +187,17 @@ function ExecuteSelection(bp, delimiter, includeDelimiter)
   end
 
   local cursor = bp.Buf:GetActiveCursor()
-  if cursor and cursor:HasSelection() then
-    -- Write the output file
-    ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+  if cursor then
+    if cursor:HasSelection() then
+      -- Write the output file
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+    else
+      -- Get the current line
+      local currentLine = util.String(bp.Buf:LineBytes(cursor.Loc.Y))
+
+      -- Write the output file
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, currentLine, 438)
+    end
 
     -- Call back into qsh
     micro.InfoBar():Message("Qsh: Sending Query >>>")
