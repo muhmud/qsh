@@ -77,9 +77,10 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
  
   # If we are aware of the editor, look for an env file to use for initialization
   QSH_ENV="$QSH_BASE/clients/$QSH_SQL_CLIENT/.qshenv";
-  if [[ -f "$QSH_ENV" ]]; then
-    source "$QSH_ENV";
-  fi;
+  [[ ! -f "$QSH_ENV" ]] && QSH_ENV="$QSH_BASE/clients/generic/.qshenv";
+
+  # Setup environment
+  source "$QSH_ENV";
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
@@ -112,9 +113,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # If there is a SQL client specific initialization script, use that, otherwise use the generic
   # version, which should be fine for most database platforms
   QSH_INIT="$QSH_BASE/clients/$QSH_SQL_CLIENT/$QSH_INIT_FILE";
-  if [[ ! -f "$QSH_INIT" ]]; then
-    QSH_INIT="$QSH_BASE/clients/$QSH_INIT_FILE"
-  fi;
+  [[ ! -f "$QSH_INIT" ]] && QSH_INIT="$QSH_BASE/clients/generic/$QSH_INIT_FILE";
 
   # Initialize qsh and put up a nice message to let the user know we're good to go
   "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$QSH_PAGER_COMMAND" "$QSH_NO_CHANGE_PROMPT" \

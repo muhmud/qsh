@@ -49,7 +49,9 @@ while getopts "t:c:" arg; do
       ;;
     t)
       FILE_TYPE=$OPTARG
-      REPL_MODE=1
+      if [[ "$FILE_TYPE" != "sql" ]]; then
+        REPL_MODE=1
+      fi;
       ;;
   esac
 done
@@ -106,6 +108,11 @@ PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
+
+FILE_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.type')";
+if [[ "$FILE_TYPE" != "sql" ]]; then
+  REPL_MODE=1
+fi;
 
 if [[ ! -z "$CLIENT_COMMAND" ]]; then
   CLIENT=$CLIENT_COMMAND

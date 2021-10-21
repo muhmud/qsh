@@ -18,7 +18,7 @@ function usage() {
     has_tree=1;
   fi;
 
-  echo "usage: qsh-reg [-pxnv] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnv] [-t type] <name> <invocation>";
   echo "       qsh-reg [-deu] <name>";
   echo "       qsh-reg -c <name> <new-name>";
   echo;
@@ -27,6 +27,7 @@ function usage() {
   echo "  -x   Overwrite an existing connection with the same name";
   echo "  -n   Do not update the SQL client prompt when using the connection";
   echo "  -v   Vanilla connection, do not set any QSH properties";
+  echo "  -t   File type for the connection (for generic tools)";
   echo;
   echo "Manage an existing connection, using:";
   echo "  -d   Delete a connection";
@@ -45,7 +46,7 @@ function usage() {
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvdeuc" arg; do
+while getopts "pxnvdeuct:" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -71,6 +72,9 @@ while getopts "pxnvdeuc" arg; do
     c)
       COPY=1
       ;;
+    t)
+      FILE_TYPE=$OPTARG
+      ;;
   esac
 done
 
@@ -80,6 +84,22 @@ shift $(expr $OPTIND - 1);
 NAME=$1
 [[ -z "$NAME" ]] && usage;
 [[ "$NAME" =~ ^-.* ]] && usage;
+
+function client_reg {
+  local CLIENT=$1
+
+  CLIENT_NAME=$(basename "$CLIENT");
+  if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+    CLIENT_NAME=generic
+  fi;
+
+  CLIENT_REG="$QSH_CLIENTS/$CLIENT_NAME/qsh-reg";
+  if [[ ! -f "$CLIENT_REG" ]]; then
+    CLIENT_REG="$QSH_CLIENTS/generic/qsh-reg";
+  fi;
+
+  echo "$CLIENT_REG";
+}
 
 CONNECTION_FILE=$QSH_CONNECTIONS/${NAME}.json
 CONNECTION=$(basename "$CONNECTION_FILE");
@@ -149,8 +169,8 @@ if [[ ! -z "$UPDATE_PASSWORD" ]]; then
   read -sp 'Password: ' PASSWORD;
   echo;
 
-  CLIENT_NAME="$(jq --raw-output '.client' "$CONNECTION_FILE")";
-  source $QSH_CLIENTS/$CLIENT_NAME/qsh-reg;
+  CLIENT="$(jq --raw-output '.client' "$CONNECTION_FILE")";
+  source "$(client_reg "$CLIENT")";
   exit 0;
 fi;
 
@@ -180,12 +200,13 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "invocation": "$INVOCATION",
   "prompt": $PROMPT,
   "vanilla": $VANILLA,
+  "type": "$([[ ! -z "$FILE_TYPE" ]] && echo "$FILE_TYPE" || echo 'sql')",
   "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false')
 }
 EOF
 
 if [[ ! -z "$USING_PASSWORD" ]]; then
-  source $QSH_CLIENTS/$CLIENT_NAME/qsh-reg; 
+  source "$(client_reg "$CLIENT")";
 fi;
 
 chmod 0600 "$CONNECTION_FILE";
