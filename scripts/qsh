@@ -33,6 +33,7 @@ QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'\e\;'}
 QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
 QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
+QSH_FILE_TYPE=${QSH_FILE_TYPE:-sql}
 
 # The editor to use
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
@@ -62,7 +63,7 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.sql
+    EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.$QSH_FILE_TYPE
   fi;
 
   # Find the name of the SQL client running qsh (for advanced functionality)

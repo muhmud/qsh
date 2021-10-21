@@ -18,16 +18,18 @@ function usage {
   fi;
 
   echo "usage: qsh <connection> | <invocation> ...";
-  echo "       qsh -r <invocation> ..."
+  echo "       qsh -t <type> <invocation> ..."
   echo "       qsh -c <command> <connection> ..."
   echo;
   echo "Connections can be registered using qsh-reg, otherwise just invoke your";
   echo "sql client to connect to a data source. In both cases, additional";
   echo "command-line arguments can be provided."
   echo;
-  echo "When using qsh with a generic tool, specify -r to use repl mode, as opposed to";
-  echo "the default of sql mode. This can sometimes provide a better user experience";
-  echo "when you see screen text displayed incorrectly.";
+  echo "When using qsh with a generic tool, use -t to specify the type of file to";
+  echo "open by default in the editor. This can be useful for accessing features,";
+  echo "such as completion. Using this option implicitly sets the pager to cat if";
+  echo "a \$QSH_PAGER has not been set, which can sometimes provide better text";
+  echo "rendering for REPLs.";
   echo;
   echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
   echo "make use of a registered connection, providing additional arguments as";
@@ -40,12 +42,13 @@ function usage {
   exit 0;
 }
 
-while getopts "rc:" arg; do
+while getopts "t:c:" arg; do
   case $arg in
     c)
       CLIENT_COMMAND=$OPTARG
       ;;
-    r)
+    t)
+      FILE_TYPE=$OPTARG
       REPL_MODE=1
       ;;
   esac
