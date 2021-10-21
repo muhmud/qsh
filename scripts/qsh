@@ -41,6 +41,12 @@ QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 # Other variable(s)
 QSH_INIT_FILE="init.sh"
 
+# Figure out the client, if we don't already know it
+if [[ -z "$QSH_SQL_CLIENT" ]]; then
+  # Find the name of the SQL client using qsh
+  QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
+fi;
+ 
 # Guarantees that the output file will register as changed
 function touch_output {
   case $OSTYPE in
@@ -66,15 +72,11 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
     EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.$QSH_FILE_TYPE
   fi;
 
-  # Find the name of the SQL client running qsh (for advanced functionality)
-  QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
-
-  # If we don't have a SQL client directory for the current client, things might work, might not,
-  # and we definitely won't have access to any scripts, etc.
+  # If we don't have a SQL client directory for the current client, use the generic client
   if [[ ! -d "$QSH_BASE/clients/$QSH_SQL_CLIENT" ]]; then
     QSH_SQL_CLIENT="generic"
   fi;
- 
+
   # If we are aware of the editor, look for an env file to use for initialization
   QSH_ENV="$QSH_BASE/clients/$QSH_SQL_CLIENT/.qshenv";
   [[ ! -f "$QSH_ENV" ]] && QSH_ENV="$QSH_BASE/clients/generic/.qshenv";
@@ -289,7 +291,6 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
     # Add a newline, if we have to
     if [[ $QSH_NEWLINE_ON_COMMAND -eq 1 ]]; then
-      echo "sending newline 2" > /tmp/t.sql;
       tmux send-keys -t $CLIENT_PANE_ID "C-m";
     fi;
 
@@ -320,6 +321,14 @@ fi;
 # which will then pick it up and execute it. A copy is used instead of move to not invalidate open
 # file handles
 if [[ -f "$QSH_EXECUTE_QUERY" ]]; then
+  # If there is a finalizer for the current client, use it
+  QSH_QUERY_FINALIZER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-finalizer
+  if [[ -f "$QSH_QUERY_FINALIZER" ]]; then
+    "$QSH_QUERY_FINALIZER" "$QSH_EXECUTE_QUERY";
+  fi;
+
+  cp "$QSH_EXECUTE_QUERY" /tmp/debug.sql
+  # Send the query to it's final destination
   cat "$QSH_EXECUTE_QUERY" > "$OUTPUT_FILE";
 fi;
 
@@ -328,3 +337,4 @@ rm -f "$QSH_EXECUTE_QUERY" "$QSH_EXECUTE_QUERY_CURSOR";
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
+

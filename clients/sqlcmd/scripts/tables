@@ -1,0 +1,11 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select * from information_schema.tables
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
