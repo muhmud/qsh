@@ -54,9 +54,15 @@ while(<>) {
   } else {
     my $is_valid = 1;
     my $index = 0;
+    my $start = 0;
     foreach my $position (@column_max_size) {
       if (++$index != $column_count) {
-        if (substr($line, $position, 1) ne $column_separator) {
+        if ($start == 0) {
+          $start = $position;
+        } else {
+          $start += $position + 1;
+        }
+        if (substr($line, $start, 1) ne $column_separator) {
           $is_valid = 0;
           break;
         }
@@ -64,8 +70,8 @@ while(<>) {
     }
 
     if ($is_valid == 1) {
-      my $start = 0;
       $index = 0;
+      $start = 0;
       foreach my $size (@column_max_size) {
         my $current_column = substr($line, $start, $size);
         $current_column =~ s/\s+$//g;
@@ -139,17 +145,23 @@ while(<INPUT>) {
   } else {
     my $is_valid = 1;
     my $index = 0;
+    my $start = 0;
     foreach my $position (@column_max_size) {
       if (++$index != $column_count) {
-        if (substr($line, $position, 1) ne $column_separator) {
+        if ($start == 0) {
+          $start = $position;
+        } else {
+          $start += $position + 1;
+        }
+        if (substr($line, $start, 1) ne $column_separator) {
           $is_valid = 0;
           break;
         }
       }
     }
 
+    $start = 0;
     $index = 0;
-    my $start = 0;
     if ($is_valid == 1) {
       foreach my $size (@column_new_size) {
         my $current_column = substr($line, $start, $size);

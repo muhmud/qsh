@@ -70,7 +70,11 @@ if [[ -f "$RESULT_REQUEST" ]] && [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
     cat > "$RESULT_REQUEST_OUTPUT";
   fi;
 else
-  # No special processing: call the normal pager
-  $QSH_PAGER;
+  if [[ ! -z "$QSH_PAGER_PREPROCESSOR" ]]; then
+    cat | "$QSH_PAGER_PREPROCESSOR" | $QSH_PAGER;
+  else
+    # No special processing: call the normal pager
+    $QSH_PAGER;
+  fi;
 fi;
 

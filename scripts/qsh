@@ -322,9 +322,9 @@ fi;
 # file handles
 if [[ -f "$QSH_EXECUTE_QUERY" ]]; then
   # If there is a finalizer for the current client, use it
-  QSH_QUERY_FINALIZER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-finalizer
-  if [[ -f "$QSH_QUERY_FINALIZER" ]]; then
-    "$QSH_QUERY_FINALIZER" "$QSH_EXECUTE_QUERY";
+  QSH_INPUT_FINALIZER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-input-finalizer
+  if [[ -f "$QSH_INPUT_FINALIZER" ]]; then
+    "$QSH_INPUT_FINALIZER" "$QSH_EXECUTE_QUERY";
   fi;
 
   cp "$QSH_EXECUTE_QUERY" /tmp/debug.sql
