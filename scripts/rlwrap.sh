@@ -1,5 +1,17 @@
 #!/bin/bash
 
+which rlwrap > /dev/null 2>&1;
+if [[ $? -ne 0 ]]; then
+  echo "Could not find rlwrap, which is needed to make this connection";
+  exit -1;
+fi;
+
+which perl > /dev/null 2>&1;
+if [[ $? -ne 0 ]]; then
+  echo "Could not find perl, which is needed for rlwrap connections";
+  exit -1;
+fi;
+
 QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 QSH_TMP=/tmp/qsh
 

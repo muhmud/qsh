@@ -12,7 +12,7 @@ fi;
 
 function usage {
   local has_tree=0;
-  which tree > /dev/null;
+  which tree > /dev/null 2>&1;
   if [[ $? == 0 ]]; then
     has_tree=1;
   fi;
