@@ -266,6 +266,17 @@ function QshExecuteAll()
   call system($QSH)
 endfunction
 
+function s:ExecuteScript(script)
+  let message = "Qsh: " . a:script . " >>>"
+
+  let result = system("$QSH scripts " . shellescape(a:script))
+  if v:shell_error != 0
+    echo message .. " " .. result
+  else
+    echo message
+  endif
+endfunction
+
 function QshExecuteScript()
   if s:qsh_enabled != 1
     return
@@ -276,8 +287,8 @@ function QshExecuteScript()
   " Write to the requested file
   let script = join(s:FindTarget())
 
-  echo "Qsh: " . script . " >>>"
-  call system("$QSH scripts " . script)
+  " Execute the script
+  call s:ExecuteScript(script)
 endfunction
 
 function QshExecuteScriptVisually() range
@@ -290,8 +301,8 @@ function QshExecuteScriptVisually() range
 
   let script = join(s:FindVisualLines())
 
-  echo "Qsh: " . script . " >>>"
-  call system("$QSH scripts \"" . script . "\"")
+  " Execute the script
+  call s:ExecuteScript(script)
 endfunction
 
 function QshExecuteNamedScript(script)
@@ -304,8 +315,8 @@ function QshExecuteNamedScript(script)
   " Write to the requested file
   call writefile(s:FindTarget(), $QSH_EXECUTE_QUERY)
 
-  "echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function QshExecuteNamedScriptVisually(script) range
@@ -319,8 +330,8 @@ function QshExecuteNamedScriptVisually(script) range
   " Write to the requested file
   call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY)
 
-  echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function QshExecuteNamedScriptNonVisually(script, delimiter = ";", includeDelimiter = 1)
@@ -333,8 +344,8 @@ function QshExecuteNamedScriptNonVisually(script, delimiter = ";", includeDelimi
   " Write to the requested file
   call writefile(s:FindNonVisualLines(a:delimiter, a:includeDelimiter), $QSH_EXECUTE_QUERY)
 
-  echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
