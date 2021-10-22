@@ -18,7 +18,7 @@ function usage() {
     has_tree=1;
   fi;
 
-  echo "usage: qsh-reg [-pxnv] [-t type] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnvg] [-t type] <name> <invocation>";
   echo "       qsh-reg [-deu] <name>";
   echo "       qsh-reg -c <name> <new-name>";
   echo;
@@ -27,6 +27,7 @@ function usage() {
   echo "  -x   Overwrite an existing connection with the same name";
   echo "  -n   Do not update the SQL client prompt when using the connection";
   echo "  -v   Vanilla connection, do not set any QSH properties";
+  echo "  -g   Grab related environment variables now to restore when connecting";
   echo "  -t   File type for the connection (for generic tools)";
   echo;
   echo "Manage an existing connection, using:";
@@ -46,7 +47,7 @@ function usage() {
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvdeuct:" arg; do
+while getopts "pxnvgdeuct:" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -59,6 +60,9 @@ while getopts "pxnvdeuct:" arg; do
       ;;
     v)
       VANILLA=true
+      ;;
+    g)
+      GRAB_ENVIRONMENT=1
       ;;
     d)
       DELETE=1
@@ -191,6 +195,19 @@ if [[ ! -z "$USING_PASSWORD" ]]; then
   echo;
 fi;
 
+if [[ ! -z "$GRAB_ENVIRONMENT" ]]; then
+  QSH_ENV=$(cat <<EOF
+  {
+    "QSH_PAGER": "$QSH_PAGER",
+    "QSH_SCRIPTS_PATH": "$QSH_SCRIPTS_PATH",
+    "QSH_SNIPPETS_PATH": "$QSH_SNIPPETS_PATH"
+  }
+EOF
+  );
+else
+  QSH_ENV="{}";
+fi;
+
 # Ensure the destination directory exists
 mkdir -p "$(dirname "$CONNECTION_FILE")";
 
@@ -201,7 +218,8 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "prompt": $PROMPT,
   "vanilla": $VANILLA,
   "type": "$([[ ! -z "$FILE_TYPE" ]] && echo "$FILE_TYPE" || echo 'sql')",
-  "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false')
+  "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false'),
+  "env": $QSH_ENV
 }
 EOF
 
