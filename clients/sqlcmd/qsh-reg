@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo -n "$PASSWORD" > "$CLIENT_CONNECTION_FILE";
