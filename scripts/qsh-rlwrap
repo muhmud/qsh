@@ -36,6 +36,7 @@ use constant QSH_RLWRAP_SHELL_COMMAND => $ENV{'QSH_RLWRAP_SHELL_COMMAND'};
 use constant QSH_RLWRAP_SHELL_COMMAND_LENGTH => length(QSH_RLWRAP_SHELL_COMMAND);
 use constant QSH_RLWRAP_PAGER => $ENV{'QSH_RLWRAP_PAGER'};
 use constant QSH_RLWRAP_CLIENT_PANE => $ENV{'QSH_RLWRAP_CLIENT_PANE'};
+use constant QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE => $ENV{'QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE'};
 
 my $initialized;
 my $prompt;
@@ -85,11 +86,15 @@ sub prompt {
     close PAGER; # this waits until pager has finished
   } else {
     if (-e QSH_RLWRAP_CLIENT_PANE) {
-      $filter->send_output_oob("${prompt}\n");
-      $filter->send_output_oob(" qsh (generic)\n");
-      $filter->send_output_oob("---------------\n");
-      $filter->send_output_oob("  INITIALIZED\n");
-      $filter->send_output_oob("\n");
+      if (!QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE) {
+        # Display a message to the user to say we are good to go
+        $filter->send_output_oob("${prompt}\n");
+        $filter->send_output_oob(" qsh (generic)\n");
+        $filter->send_output_oob("---------------\n");
+        $filter->send_output_oob("  INITIALIZED\n");
+        $filter->send_output_oob("\n");
+      }
+
       $initialized = 1;
     }
   }
