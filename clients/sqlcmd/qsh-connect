@@ -3,7 +3,7 @@
 QSH_CLIENTS=$QSH_BASE/clients
 
 if [[ -z "$QSH_SQLCMD_DISABLE_RESULT_PREPROCESSING" ]]; then
-  export QSH_PAGER_PREPROCESSOR=$QSH_CLIENTS/sqlcmd/qsh-result-preprocessor.pl;
+  export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcmd/qsh-output-finalizer.pl;
   INVOCATION="$INVOCATION -s ''\|''"
 fi;
 

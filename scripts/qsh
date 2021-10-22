@@ -327,7 +327,6 @@ if [[ -f "$QSH_EXECUTE_QUERY" ]]; then
     "$QSH_INPUT_FINALIZER" "$QSH_EXECUTE_QUERY";
   fi;
 
-  cp "$QSH_EXECUTE_QUERY" /tmp/debug.sql
   # Send the query to it's final destination
   cat "$QSH_EXECUTE_QUERY" > "$OUTPUT_FILE";
 fi;
