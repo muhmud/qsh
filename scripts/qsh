@@ -6,6 +6,7 @@ QSH_BASE="$QSH_SCRIPTS/.."
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
 QSH_PAGER_COMMAND="$QSH_SCRIPTS/qsh-pager"
+WINDOW_ID=$(tmux display-message -p '#I')
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
@@ -17,6 +18,9 @@ QSH_TMP=/tmp/qsh
 # when that pane executes this script it can easily access the information for it's related pane
 CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
 EDITOR_PANE=$QSH_TMP/editor.${PANE_ID}
+
+# File used to bootstrap the session
+QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
 
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
@@ -84,25 +88,32 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # Setup environment
   source "$QSH_ENV";
 
+  # Setup the session
+  cat <<EOF > "$QSH_SESSION"
+export QSH='$QSH' \
+       QSH_ENABLE=1 \
+       QSH_CONNECTION='$QSH_CONNECTION' \
+       QSH_INVOCATION='$QSH_INVOCATION' \
+       QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
+       QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' \
+       QSH_PAGER='$QSH_PAGER' \
+       QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
+       QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND' \
+       QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
+       QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' \
+       QSH_SQL_CLIENT='$QSH_SQL_CLIENT' \
+       EDITOR_PANE_ID=$(tmux display-message -p '#{pane_id}');
+
+"$QSH_EDITOR" "$EDITOR_FILE";
+
+rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" \
+      "$CLIENT_PANE";
+EOF
+
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
-  EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
-                                             QSH_ENABLE=1 \
-                                             QSH_CONNECTION='$QSH_CONNECTION' \
-                                             QSH_INVOCATION='$QSH_INVOCATION' \
-                                             QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
-                                             QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' \
-                                             QSH_PAGER='$QSH_PAGER' \
-                                             QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
-                                             QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND' \
-                                             QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
-                                             QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' \
-                                             QSH_SQL_CLIENT='$QSH_SQL_CLIENT' \
-                                             PANE_ID=$(tmux display-message -p '#{pane_id}');
-                                      $QSH_EDITOR $EDITOR_FILE; \
-                                      rm -f $QSH_TMP/editor.$PANE_ID; \
-                                      rm -f $CLIENT_PANE;" \; \
+  EDITOR_PANE_ID=$(tmux split-window "source \"$QSH_SESSION\"" \; \
                    swap-pane -U \; \
                    display-message -p '#{pane_id}');
 
