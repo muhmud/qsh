@@ -388,26 +388,28 @@ function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
 
     " Prepare the results
     let result = split(result, '\n')[:-1]
-    let result_column = len(result) == 1 ? len(lineStart) + len(result[0]) : len(result[-1])
+    if (len(result) > 0)
+      let result_column = len(result) == 1 ? len(lineStart) + len(result[0]) : len(result[-1])
 
-    let result[0] = lineStart . result[0]
-    let result[-1] = result[-1] . lineEnd
+      let result[0] = lineStart . result[0]
+      let result[-1] = result[-1] . lineEnd
 
-    exec 'normal "_d'
-    let result_length = len(result)
-    let i = 0
-    while i < result_length
-      if i == 0 || i + 1 == result_length
-        call setline(a:rangeStart[1] + i, result[i])
-      else
-        call append(a:rangeStart[1] + i - 1, result[i])
-      endif
+      exec 'normal "_d'
+      let result_length = len(result)
+      let i = 0
+      while i < result_length
+        if i == 0 || i + 1 == result_length
+          call setline(a:rangeStart[1] + i, result[i])
+        else
+          call append(a:rangeStart[1] + i - 1, result[i])
+        endif
 
-      let i += 1
-    endwhile
+        let i += 1
+      endwhile
 
-    " Position the cursor at the end of the snippet
-    call setpos(".", [ a:rangeStart[0], a:rangeStart[1] + len(result) - 1, result_column + 1, a:rangeStart[3] ])
+      " Position the cursor at the end of the snippet
+      call setpos(".", [ a:rangeStart[0], a:rangeStart[1] + len(result) - 1, result_column + 1, a:rangeStart[3] ])
+    endif
   endif
 endfunction
 

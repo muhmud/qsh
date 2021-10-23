@@ -1,5 +1,10 @@
 #!/usr/bin/perl
 
+use File::Temp qw/ tempfile tempdir /;
+use File::Copy;
+
+($tmp, $tmp_filename) = tempfile();
+
 my $column_separator = $ENV{'QSH_PAGER_PREPROCESSOR_COLUMN_SEPARATOR'};
 if (!$column_separator) {
   $column_separator = "|";
@@ -47,6 +52,8 @@ while(<>) {
   $previous_line = $line;
   $line = $_;
 
+  print $tmp $line;
+
   if ($headers_found == 0) {
     if ($line =~ /^([-]+[${column_separator}])*[-]+\s$/) {
       my @separators = split(/[${column_separator}]/, $line);
@@ -79,6 +86,20 @@ while(<>) {
     } elsif ($is_valid == -1) {
       last;
     }
+  }
+}
+
+close $tmp;
+
+if ($headers_found == 0) {
+  copy($tmp_filename, \*STDOUT);
+  exit 0;
+}
+
+END {
+  close $tmp;
+  if (-e $tmp_filename) {
+    unlink($tmp_filename);
   }
 }
 
