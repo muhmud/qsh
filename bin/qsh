@@ -128,21 +128,23 @@ INVOCATION="$INVOCATION $*";
 
 # Setup environment, if necessary
 QSH_ENV="$(echo "$CONNECTION_DATA" | jq '.env')";
-QSH_ENV_KEYS="$(echo "$QSH_ENV" | jq 'keys')";
+if [[ "$QSH_ENV" != "null" ]]; then
+  QSH_ENV_KEYS="$(echo "$QSH_ENV" | jq 'keys')";
 
-ENV_INDEX=0
-while [[ $ENV_INDEX -ne -1 ]];
-do
-  ENV_VARIABLE="$(echo "$QSH_ENV_KEYS" | jq -r ".[$ENV_INDEX]")";
-  if [[ "$ENV_VARIABLE" != "null" ]]; then
-    ENV_VALUE="$(echo "$QSH_ENV" | jq -r ".$ENV_VARIABLE")";
-    export $ENV_VARIABLE=$ENV_VALUE;
+  ENV_INDEX=0;
+  while [[ $ENV_INDEX -ne -1 ]];
+  do
+    ENV_VARIABLE="$(echo "$QSH_ENV_KEYS" | jq -r ".[$ENV_INDEX]")";
+    if [[ "$ENV_VARIABLE" != "null" ]]; then
+      ENV_VALUE="$(echo "$QSH_ENV" | jq -r ".$ENV_VARIABLE")";
+      export $ENV_VARIABLE=$ENV_VALUE;
 
-    ENV_INDEX=$((ENV_INDEX + 1));
-  else
-    ENV_INDEX=-1;
-  fi;
-done;
+      ENV_INDEX=$((ENV_INDEX + 1));
+    else
+      ENV_INDEX=-1;
+    fi;
+  done;
+fi;
 
 source "$(client_connect "$CLIENT")";
 

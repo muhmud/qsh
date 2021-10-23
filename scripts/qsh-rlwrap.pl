@@ -38,6 +38,9 @@ use constant QSH_RLWRAP_PAGER => $ENV{'QSH_RLWRAP_PAGER'};
 use constant QSH_RLWRAP_CLIENT_PANE => $ENV{'QSH_RLWRAP_CLIENT_PANE'};
 use constant QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE => $ENV{'QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE'};
 
+use constant QSH_RESULT_REQUEST => QSH_RLWRAP_CLIENT_PANE . ".result-request";
+use constant QSH_RESULT_REQUEST_COMPLETE => QSH_RESULT_REQUEST . ".complete";
+
 my $initialized;
 my $prompt;
 
@@ -51,26 +54,8 @@ $filter->echo_handler(\&echo);
 
 $filter->run;
 
-sub handle_shell_command {
-  my $input = $_;
-
-  my $is_shell_command = substr($input, 0, QSH_RLWRAP_SHELL_COMMAND_LENGTH) eq QSH_RLWRAP_SHELL_COMMAND;
-  if ($is_shell_command) {
-    my $shell_command = substr($input, QSH_RLWRAP_SHELL_COMMAND_LENGTH);
-    system($shell_command);
-    return "";
-  }
-
-  return $input;
-}
-
 sub input {
-  my $input = $_;
-
-  # Handle shell commands
-  $input = handle_shell_command($input);
-
-  return $input;
+  return $_;
 }
 
 sub output {
@@ -84,6 +69,12 @@ sub prompt {
     open PAGER, "| $pager";
     print PAGER $filter->cumulative_output;
     close PAGER; # this waits until pager has finished
+
+    # Check for a result request & mark it complete if it exists
+    if (-e QSH_RESULT_REQUEST) {
+      open RESULT_REQUEST, ">>", QSH_RESULT_REQUEST_COMPLETE;
+      close RESULT_REQUEST;
+    }
   } else {
     if (-e QSH_RLWRAP_CLIENT_PANE) {
       if (!QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE) {

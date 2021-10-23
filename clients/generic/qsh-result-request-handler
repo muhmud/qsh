@@ -1,8 +1,5 @@
 #!/bin/bash
 
-QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-QSH_TMP=/tmp/qsh
-
 RESULT_REQUEST=$1
 QSH_EXECUTE_QUERY=$2
 
@@ -10,8 +7,3 @@ RESULT_REQUEST_QUERY="${RESULT_REQUEST}.sql";
 RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
 
 cat "$RESULT_REQUEST_QUERY" > "$QSH_EXECUTE_QUERY";
-echo >> "$QSH_EXECUTE_QUERY";
-
-echo "!>> touch $RESULT_REQUEST_COMPLETE" >> "$QSH_EXECUTE_QUERY";
-echo >> "$QSH_EXECUTE_QUERY";
-

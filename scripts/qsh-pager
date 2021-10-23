@@ -26,7 +26,7 @@ RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
       } else {
         value_now = 1;
       }
-    } else if ($0 ~ /^\([0-9]+ row(s)*\)$/) {
+    } else if ($0 ~ /^\([0-9]+ row[s]?(s)*\)$/) {
       value_now = 0;
     } else if (value_now != 0) {
       print $0;
@@ -65,6 +65,9 @@ if [[ -f "$RESULT_REQUEST" ]] && [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
     cat | awk "$RESULT_REQUEST_CLEANUP" \
         | sed 's/^|//g; s/|$//g; s/^://g; s/:$//g; s/[[:space:]]*$//g;' \
         > "$RESULT_REQUEST_OUTPUT";
+  elif [[ -f "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
+    # Used the specified file to cleanup the results
+    cat | "$RESULT_REQUEST_PERFORM_CLEANUP" > "$RESULT_REQUEST_OUTPUT";
   else
     # Don't cleanup the results, i.e. return them as is
     cat > "$RESULT_REQUEST_OUTPUT";

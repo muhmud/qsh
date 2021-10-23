@@ -1,0 +1,26 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TABLE=$3
+
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+
+if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
+  # Trim leading & trailing whitespace
+  TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+  cat <<EOF > $QUERY_FILE
+select (case when ORDINAL_POSITION != 1 then ', ' else '' end) + COLUMN_NAME
+from INFORMATION_SCHEMA.COLUMNS
+where TABLE_SCHEMA = object_schema_name(object_id('$TABLE'), 1)
+and TABLE_NAME = object_name(object_id('$TABLE'))
+order by ordinal_position
+for xml path('');
+EOF
+else
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+

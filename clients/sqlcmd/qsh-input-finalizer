@@ -9,3 +9,4 @@ sed 's/^[Gg][Oo]$//g' "$QSH_EXECUTE_QUERY_TMP" | awk '{printf $0 " "}' > "$QSH_E
 
 # Add a GO
 echo -ne "\nGO" >> "$QSH_EXECUTE_QUERY";
+
