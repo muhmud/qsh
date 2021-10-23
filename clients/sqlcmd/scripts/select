@@ -7,7 +7,6 @@ select * from (
   select top 100 percent TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE
   from INFORMATION_SCHEMA.TABLES
   where TABLE_CATALOG = db_name()
-  and TABLE_TYPE = 'BASE TABLE'
   order by 1, 2, 3
 ) t
 $QUERY_CUSTOMIZATION;

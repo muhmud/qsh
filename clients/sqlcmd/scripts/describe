@@ -1,0 +1,7 @@
+#!/bin/bash
+
+OBJECT="'$(cat "$1")'";
+cat <<EOF > $1
+exec sp_help $OBJECT;
+EOF
+

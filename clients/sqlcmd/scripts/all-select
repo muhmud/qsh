@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select top 100 percent schema_name(schema_id) as SCHEMA_NAME, name as TABLE_NAME,
+         (case when type = 'T' then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE
+  from sys.all_objects
+  where type in ('T', 'V')
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

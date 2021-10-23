@@ -1,0 +1,18 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select object_schema_name(object_id) as TRIGGER_SCHEMA, name as TRIGGER_NAME,
+         event_manipulation, event_object_schema, event_object_table,
+         action_order, action_orientation, action_timing
+  from sys.triggers t
+  inner join sys.trigger_events
+  where trigger_schema != 'information_schema'
+  and trigger_schema not like 'pg\_%'
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

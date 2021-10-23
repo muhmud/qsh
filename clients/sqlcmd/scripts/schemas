@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+    select top 100 percent SCHEMA_NAME
+    from INFORMATION_SCHEMA.SCHEMATA
+    where SCHEMA_NAME not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+    and SCHEMA_NAME not like 'db[_]%'
+    order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
