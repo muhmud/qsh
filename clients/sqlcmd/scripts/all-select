@@ -2,14 +2,19 @@
 
 QUERY_CUSTOMIZATION=$2
 
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1, 2"
+fi;
+
 cat <<EOF > $1
 select * from (
   select top 100 percent schema_name(schema_id) as SCHEMA_NAME, name as TABLE_NAME,
          (case when type = 'T' then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE
   from sys.all_objects
   where type in ('T', 'V')
-  order by 1, 2
 ) t
-$QUERY_CUSTOMIZATION;
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
 EOF
 
