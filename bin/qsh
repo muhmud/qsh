@@ -18,18 +18,22 @@ function usage {
   fi;
 
   echo "usage: qsh <connection> | <invocation> ...";
-  echo "       qsh -t <type> <invocation> ..."
+  echo "       qsh -f <type> -t <term> <invocation> ..."
   echo "       qsh -c <command> <connection> ..."
   echo;
   echo "Connections can be registered using qsh-reg, otherwise just invoke your";
   echo "sql client to connect to a data source. In both cases, additional";
   echo "command-line arguments can be provided."
   echo;
-  echo "When using qsh with a generic tool, use -t to specify the type of file to";
-  echo "open by default in the editor. This can be useful for accessing features,";
-  echo "such as completion. Using this option implicitly sets the pager to cat if";
-  echo "a \$QSH_PAGER has not been set, which can sometimes provide better text";
-  echo "rendering for REPLs.";
+  echo "When using qsh with a generic tool, such as a repl, use -f to specify the";
+  echo "type of file to open by default in the editor. This can be useful for";
+  echo "accessing features such as completion. Using this option implicitly sets";
+  echo "the pager to cat if a \$QSH_PAGER has not been set, which can sometimes";
+  echo "provide better text rendering for REPLs.";
+  echo;
+  echo "For generic tools, you can also optionally use -t to change the terminal type";
+  echo "used with rlwrap when starting up the tool. This can sometimes provide a better";
+  echo "user experience.";
   echo;
   echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
   echo "make use of a registered connection, providing additional arguments as";
@@ -42,16 +46,19 @@ function usage {
   exit 0;
 }
 
-while getopts "t:c:" arg; do
+while getopts "f:t:c:" arg; do
   case $arg in
     c)
       CLIENT_COMMAND=$OPTARG
       ;;
-    t)
+    f)
       FILE_TYPE=$OPTARG
       if [[ "$FILE_TYPE" != "sql" ]]; then
         REPL_MODE=1
       fi;
+      ;;
+    t)
+      TERMINAL_TYPE=$OPTARG
       ;;
   esac
 done
@@ -108,6 +115,7 @@ PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
+TERMINAL_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.terminal')";
 
 FILE_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.type')";
 if [[ "$FILE_TYPE" != "sql" ]]; then

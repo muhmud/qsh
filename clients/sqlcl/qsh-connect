@@ -1,0 +1,17 @@
+#!/bin/bash
+
+QSH_CLIENTS=$QSH_BASE/clients
+
+if [[ -z "$TERMINAL_TYPE" ]]; then
+  export TERMINAL_TYPE=vanilla
+fi;
+
+if [[ -z "$QSH_SQLCL_DISABLE_RESULT_PREPROCESSING" ]]; then
+  export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcl/qsh-output-finalizer.pl;
+fi;
+
+# Other setting(s)
+export QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE=1
+
+source $QSH_CLIENTS/generic/qsh-connect;
+
