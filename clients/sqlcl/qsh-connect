@@ -10,6 +10,9 @@ if [[ -z "$QSH_SQLCL_DISABLE_RESULT_PREPROCESSING" ]]; then
   export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcl/qsh-output-finalizer.pl;
 fi;
 
+# Update the invocation
+INVOCATION="$INVOCATION @$QSH_CLIENTS/sqlcl/connect.sql";
+
 # Other setting(s)
 export QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE=1
 
