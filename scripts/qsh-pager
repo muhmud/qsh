@@ -76,9 +76,8 @@ else
   if [[ ! -z "$QSH_OUTPUT_FINALIZER" ]]; then
     cat | "$QSH_OUTPUT_FINALIZER" | $QSH_PAGER;
   else
-    cat > /tmp/debug.out;
     # No special processing: call the normal pager
-    cat /tmp/debug.out | $QSH_PAGER;
+    cat | $QSH_PAGER;
   fi;
 fi;
 
