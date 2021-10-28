@@ -7,6 +7,8 @@ use File::Temp qw/ tempfile tempdir /;
 use File::Copy;
 
 ($tmp, $tmp_filename) = tempfile();
+($starting_tmp, $starting_tmp_filename) = tempfile();
+($ending_tmp, $ending_tmp_filename) = tempfile();
 
 my @columns = ();
 my @column_max_sizes = ();
@@ -19,22 +21,25 @@ my $column_number = 0;
 my $factory = new XML::SAX::ParserFactory;
 my $handler = new XML::SAX::PurePerl;
 
-my $xml_found = 0;
+my $xml_start_line = 0;
 my $end_found = 0;
-my $trailing_info = "";
+my $line_count = 0;
 
 while(<>) {
   $line = $_;
+  $line_count++;
 
   if ($line =~ /<\?xml version='1.0'  encoding='UTF-8' \?>/) {
     next;
   }
 
   if ($line =~ /<RESULTS>/) {
+    $xml_start_line = $line_count;
     print $tmp $line;
-    $xml_found = 1;
   } elsif ($end_found == 1) {
-    $trailing_info=$trailing_info . $line . "\n";
+    print $ending_tmp "$line\n";
+  } elsif ($xml_start_line == 0) {
+    print $starting_tmp "$line\n";
   } else {
     my $cleaned_line = $line =~ s/\r|\s//rg;
     if ($cleaned_line ne "") {
@@ -47,15 +52,28 @@ while(<>) {
   }
 }
 
-close $tmp;
+if ($line_count == 0 || ($xml_start_line != 0 && $end_found == 0)){
+  exit 0;
+}
 
-if ($xml_found == 0) {
-  copy($tmp_filename, \*STDOUT);
+close $tmp;
+close $starting_tmp;
+close $closing_tmp;
+
+if ($xml_start_line == 0) {
+  open $starting_tmp, "<", $starting_tmp_filename;
+  copy($starting_tmp, \*STDOUT);
   exit 0;
 }
 
 my $parser = $factory->parser(
     Handler => $handler,
+    ErrorHandler => {
+      fatal_error => sub {
+        print "\n";
+        exit -1;
+      }
+    },
     Methods => {
         start_element => sub {
           my $element = $_[0];
@@ -100,6 +118,7 @@ my $parser = $factory->parser(
 );
 
 $parser->parse_uri($tmp_filename);
+
 print "\n";
 
 my $column_count = scalar(@columns);
@@ -179,13 +198,21 @@ my $parser = $factory->parser(
 
 $parser->parse_uri($tmp_filename);
 
-if ($trailing_info ne "") {
-  print "\n$trailing_info";
-}
+open $ending_tmp, "<", $ending_tmp_filename;
+copy($ending_tmp, \*STDOUT);
 
 END {
   close $tmp;
+  close $starting_tmp;
+  close $ending_tmp;
+
   if (-e $tmp_filename) {
+    unlink($tmp_filename);
+  }
+  if (-e $starting_tmp_filename) {
+    unlink($tmp_filename);
+  }
+  if (-e $ending_tmp_filename) {
     unlink($tmp_filename);
   }
 }

@@ -8,7 +8,6 @@
 use lib ($ENV{RLWRAP_FILTERDIR} or ".");
 use RlwrapFilter;
 use POSIX qw(:signal_h);
-use strict;
 
 # We want any piped pager to receive SIGWINCH.
 # SIGWINCH is not in POSIX, which means that POSIX.pm doesn't
@@ -32,14 +31,17 @@ Usage: rlwrap -z $name <command>
 Provides handling of input/output for compatibility with QSH
 DOC
 
-use constant QSH_RLWRAP_SHELL_COMMAND => $ENV{'QSH_RLWRAP_SHELL_COMMAND'};
-use constant QSH_RLWRAP_SHELL_COMMAND_LENGTH => length(QSH_RLWRAP_SHELL_COMMAND);
 use constant QSH_RLWRAP_PAGER => $ENV{'QSH_RLWRAP_PAGER'};
 use constant QSH_RLWRAP_CLIENT_PANE => $ENV{'QSH_RLWRAP_CLIENT_PANE'};
 use constant QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE => $ENV{'QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE'};
 
 use constant QSH_RESULT_REQUEST => QSH_RLWRAP_CLIENT_PANE . ".result-request";
 use constant QSH_RESULT_REQUEST_COMPLETE => QSH_RESULT_REQUEST . ".complete";
+
+my $QSH_RLWRAP_PAGER_CHECK = $ENV{'QSH_RLWRAP_PAGER_CHECK'};
+if ($QSH_RLWRAP_PAGER_CHECK) {
+  require "$QSH_RLWRAP_PAGER_CHECK";
+}
 
 my $initialized;
 my $prompt;
@@ -65,10 +67,21 @@ sub output {
 sub prompt {
   $prompt = $_;
   if ($initialized) {
-    local $SIG{PIPE} = 'IGNORE'; # we don't want to die if the pipeline quits
-    open PAGER, "| $pager";
-    print PAGER $filter->cumulative_output;
-    close PAGER; # this waits until pager has finished
+    my $output = $filter->cumulative_output;
+
+    my $page = 1;
+    if ($QSH_RLWRAP_PAGER_CHECK) {
+      $page = QshPagerCheck::check($output);
+    }
+
+    if ($page == 1) {
+      local $SIG{PIPE} = 'IGNORE'; # we don't want to die if the pipeline quits
+      open PAGER, "| $pager";
+      print PAGER $output;
+      close PAGER; # this waits until pager has finished
+    } else {
+      print $output;
+    }
 
     # Check for a result request & mark it complete if it exists
     if (-e QSH_RESULT_REQUEST) {

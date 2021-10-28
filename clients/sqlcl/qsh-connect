@@ -2,12 +2,9 @@
 
 QSH_CLIENTS=$QSH_BASE/clients
 
-if [[ -z "$TERMINAL_TYPE" ]]; then
-  export TERMINAL_TYPE=vanilla
-fi;
-
 if [[ -z "$QSH_SQLCL_DISABLE_RESULT_PREPROCESSING" ]]; then
   export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcl/qsh-output-finalizer.pl;
+  export QSH_RLWRAP_PAGER_CHECK=$QSH_CLIENTS/sqlcl/QshPagerCheck.pm;
 fi;
 
 # Update the invocation
