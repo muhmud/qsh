@@ -1,0 +1,8 @@
+#!/bin/bash
+
+QSH_SQLCL="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_EXECUTE_QUERY=$1
+
+# Remove newlines & GO
+"$QSH_SQLCL/../generic/utils/remove-newlines" "$QSH_EXECUTE_QUERY";
+

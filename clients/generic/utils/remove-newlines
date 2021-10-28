@@ -1,0 +1,9 @@
+#!/bin/bash
+
+QSH_EXECUTE_QUERY=$1
+
+QSH_EXECUTE_QUERY_TMP=$(mktemp);
+cp "$QSH_EXECUTE_QUERY" "$QSH_EXECUTE_QUERY_TMP";
+cat "$QSH_EXECUTE_QUERY_TMP" | awk '{printf $0 " "}' > "$QSH_EXECUTE_QUERY";
+rm -f "$QSH_EXECUTE_QUERY_TMP";
+
