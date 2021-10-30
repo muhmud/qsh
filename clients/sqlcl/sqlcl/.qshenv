@@ -1,0 +1,2 @@
+
+export QSH_EDITOR_COMMAND='"@qsh"'

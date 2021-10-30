@@ -1,0 +1,7 @@
+#!/bin/bash
+
+QSH_CLIENTS=$QSH_BASE/clients
+
+cp "$QSH_CLIENTS/sqlcl/connect.sql" "$CLIENT_CONNECTION_FILE";
+echo >> "$CLIENT_CONNECTION_FILE";
+
