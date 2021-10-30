@@ -11,6 +11,13 @@ RESULT_REQUEST=$QSH_TMP/client.${PANE_ID}.result-request
 RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
 RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
 
+# Optional input file, otherwise stdin will be used
+INPUT_FILE=$1
+
+# Optional processing args
+shift;
+PROCESSING_ARGS=$*
+
 # AWK script used to cleanup output result requests
 RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
   BEGIN {
@@ -57,27 +64,27 @@ if [[ -f "$RESULT_REQUEST" ]] && [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
 
   if [[ -z "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
     # Cleanup the results and put them into the output file
-    cat | awk "$RESULT_REQUEST_CLEANUP" \
+    cat "$INPUT_FILE" | awk "$RESULT_REQUEST_CLEANUP" \
         | sed 's/^|//g; s/|$//g; s/^://g; s/:$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
         > "$RESULT_REQUEST_OUTPUT";
   elif [[ "$RESULT_REQUEST_PERFORM_CLEANUP" == "TRAILING_SPACE" ]]; then
     # Cleanup the results and trailing space only
-    cat | awk "$RESULT_REQUEST_CLEANUP" \
+    cat "$INPUT_FILE" | awk "$RESULT_REQUEST_CLEANUP" \
         | sed 's/^|//g; s/|$//g; s/^://g; s/:$//g; s/[[:space:]]*$//g;' \
         > "$RESULT_REQUEST_OUTPUT";
   elif [[ -f "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
     # Used the specified file to cleanup the results
-    cat | "$RESULT_REQUEST_PERFORM_CLEANUP" > "$RESULT_REQUEST_OUTPUT";
+    cat "$INPUT_FILE" | "$RESULT_REQUEST_PERFORM_CLEANUP" $PROCESSING_ARGS > "$RESULT_REQUEST_OUTPUT";
   else
     # Don't cleanup the results, i.e. return them as is
-    cat > "$RESULT_REQUEST_OUTPUT";
+    cat "$INPUT_FILE" > "$RESULT_REQUEST_OUTPUT";
   fi;
 else
   if [[ ! -z "$QSH_OUTPUT_FINALIZER" ]]; then
-    cat | "$QSH_OUTPUT_FINALIZER" | $QSH_PAGER;
+    cat "$INPUT_FILE" | "$QSH_OUTPUT_FINALIZER" $PROCESSING_ARGS | $QSH_PAGER;
   else
     # No special processing: call the normal pager
-    cat | $QSH_PAGER;
+    cat "$INPUT_FILE" | $QSH_PAGER;
   fi;
 fi;
 

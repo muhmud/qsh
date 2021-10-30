@@ -17,6 +17,8 @@ var qshPager = System.getenv("QSH_PAGER_COMMAND");
 var maxResultSize = System.getenv("QSH_SQLCL_MAX_RESULT_SIZE");
 var tty = System.getenv("QSH_TTY");
 
+var sqlFormat = ctx.getProperty("sql.format");
+
 var executeSqlFile = new File(executeSql);
 if (!executeSqlFile.exists()) {
   executeSqlFile.createNewFile();
@@ -44,7 +46,7 @@ if (!executeSqlFile.exists()) {
     fileOutputStream.close();
 
     var pager = Runtime.getRuntime().exec(
-      [ "sh", "-c", "'" + qshPager + "' '" + tempPath.toString() + "' < " + tty + " > " + tty ]
+      [ "sh", "-c", "'" + qshPager + "' '" + tempPath.toString() + "' '" + sqlFormat + "' < " + tty + " > " + tty ]
     );
     pager.waitFor();
   } finally {
