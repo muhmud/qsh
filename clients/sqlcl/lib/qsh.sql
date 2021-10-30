@@ -12,10 +12,14 @@ var Files = Java.type("java.nio.file.Files");
 var Path = Java.type("java.nio.file.Path");
 var File = Java.type("java.io.File");
 
+var clientPane = System.getenv("QSH_CLIENT_PANE");
 var executeSql = System.getenv("QSH_EXECUTE_QUERY");
 var qshPager = System.getenv("QSH_PAGER_COMMAND");
 var maxResultSize = System.getenv("QSH_SQLCL_MAX_RESULT_SIZE");
 var tty = System.getenv("QSH_TTY");
+
+var resultRequest = clientPane + ".result-request";
+var resultRequestComplete = resultRequest + ".complete";
 
 var sqlFormat = ctx.getProperty("sql.format");
 
@@ -49,8 +53,15 @@ if (!executeSqlFile.exists()) {
       [ "sh", "-c", "'" + qshPager + "' '" + tempPath.toString() + "' '" + sqlFormat + "' < " + tty + " > " + tty ]
     );
     pager.waitFor();
+
+    var resultRequestFile = new File(resultRequest);
+    if (resultRequestFile.exists()) {
+      var resultRequestCompleteFile = new File(resultRequestComplete);
+      resultRequestCompleteFile.createNewFile();
+    }
   } finally {
-    Files.delete(tempPath);
+    //Files.delete(tempPath);
+    print(tempPath.toString());
   }
 }
 /
