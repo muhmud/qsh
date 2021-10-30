@@ -1,3 +1,3 @@
 
-set sqlformat xml;
+define _EDITOR = /home/muhmud/.qsh/scripts/qsh
 

@@ -1,17 +1,13 @@
 #!/bin/bash
 
-QSH_CLIENTS=$QSH_BASE/clients
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+QSH_TTY=$(tty)
 
-if [[ -z "$QSH_SQLCL_DISABLE_RESULT_PREPROCESSING" ]]; then
-  export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcl/qsh-output-finalizer.pl;
-  export QSH_RLWRAP_PAGER_CHECK=$QSH_CLIENTS/sqlcl/QshPagerCheck.pm;
-fi;
+QSH_EXECUTE_QUERY=$QSH_TMP/execute.${PANE_ID}.sql
+QSH_PAGER_COMMAND=$QSH_CLIENTS/sqlcl/qsh-ansi-pager
 
-# Update the invocation
+[[ -z "$QSH_SQLCL_MAX_RESULT_SIZE" ]] && QSH_SQLCL_MAX_RESULT_SIZE=1000000;
 INVOCATION="$INVOCATION @$QSH_CLIENTS/sqlcl/connect.sql";
 
-# Other setting(s)
-export QSH_RLWRAP_DISABLE_INITIALIZATION_MESSAGE=1
-
-source $QSH_CLIENTS/generic/qsh-connect;
+eval "QSH_INVOCATION=\"$INVOCATION\" QSH_SQL_CLIENT=sqlcl QSH_EXECUTE_QUERY=$QSH_EXECUTE_QUERY SQLPATH=$QSH_CLIENTS/sqlcl/lib QSH_PAGER_COMMAND=$QSH_PAGER_COMMAND QSH_SQLCL_MAX_RESULT_SIZE=$QSH_SQLCL_MAX_RESULT_SIZE QSH_TTY=$QSH_TTY $CLIENT $INVOCATION";
 

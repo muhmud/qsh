@@ -229,6 +229,7 @@ while(<INPUT>) {
 }
 
 close INPUT;
+STDOUT->autoflush(1);
 
 END {
   close $tmp;

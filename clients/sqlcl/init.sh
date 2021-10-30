@@ -7,5 +7,5 @@ QSH_NO_CHANGE_PROMPT=$4
 OSH_PROMPT=$5
 OUTPUT_FILE=$6
 
-echo -ne "select 'INITIALIZED' as \"qsh ($QSH_SQL_CLIENT)\" from dual;" > "$OUTPUT_FILE";
-
+# echo -ne "select 'INITIALIZED' as \"qsh ($QSH_SQL_CLIENT)\" from dual;" > "$OUTPUT_FILE";
+echo > "$OUTPUT_FILE";

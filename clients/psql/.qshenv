@@ -1,2 +1,2 @@
 
-export QSH_EDITOR_COMMAND="\\e"
+export QSH_EDITOR_COMMAND='"\\e"'

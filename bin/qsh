@@ -2,7 +2,9 @@
 
 QSH_BASE=~/.qsh
 QSH_CLIENTS=$QSH_BASE/clients
+QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CONNECTIONS=$QSH_BASE/connections
+QSH_TMP=/tmp/qsh
 
 # Check that we are in a tmux session
 if [[ -z "${TMUX}" ]]; then
@@ -81,6 +83,9 @@ function client_connect {
 
   echo "$CLIENT_CONNECT";
 }
+
+# Ensure we have a tmp area
+mkdir -p "$QSH_TMP";
 
 CONNECTION=$1
 shift 1;

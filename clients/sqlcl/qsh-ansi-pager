@@ -1,0 +1,8 @@
+#!/bin/bash
+
+QSH_SQLCL="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$QSH_SQLCL/../../scripts/resolve-pager";
+
+INPUT_FILE=$1
+sed '1d; 2s/\x1b\[[0-9;]*[mG]//g; 3s/_/-/g' "$INPUT_FILE" | $QSH_PAGER;
+

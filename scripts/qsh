@@ -5,7 +5,7 @@ QSH_BASE="$QSH_SCRIPTS/.."
 
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
-QSH_PAGER_COMMAND="$QSH_SCRIPTS/qsh-pager"
+QSH_PAGER_COMMAND=${QSH_PAGER_COMMAND:-$QSH_SCRIPTS/qsh-pager}
 
 # Other environment details
 WINDOW_ID=$(tmux display-message -p '#I')
@@ -35,7 +35,7 @@ QSH_EXECUTE_QUERY_CURSOR=${QSH_EXECUTE_QUERY_CURSOR:-$QSH_TMP/execute.${PANE_ID}
 OUTPUT_FILE=$1
 
 # Query editor options & default values
-QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'\e\;'}
+QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
 QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
 QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
@@ -99,6 +99,7 @@ export QSH_INVOCATION='$QSH_INVOCATION'
 export QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' 
 export QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' 
 export QSH_PAGER='$QSH_PAGER' 
+export QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' 
 export QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' 
 export QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND' 
 export QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' 
@@ -110,7 +111,7 @@ export EDITOR_PANE_ID=$(tmux display-message -p '#{pane_id}')
 
 "$QSH_EDITOR" "$EDITOR_FILE";
 
-rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" "$CLIENT_PANE";
+rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" "$CLIENT_PANE" "$QSH_EXECUTE_QUERY";
 EOF
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
@@ -312,7 +313,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
     # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
     # need that to happen so that it can pick up the query file and execute it
-    tmux send-keys -t $CLIENT_PANE_ID "$QSH_EDITOR_COMMAND";
+    eval "tmux send-keys -t $CLIENT_PANE_ID $QSH_EDITOR_COMMAND";
 
     # Add a newline, if we have to
     if [[ $QSH_NEWLINE_ON_COMMAND -eq 1 ]]; then
