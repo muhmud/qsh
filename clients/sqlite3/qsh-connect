@@ -1,0 +1,10 @@
+#!/bin/bash
+
+QSH_CLIENTS=$QSH_BASE/clients
+
+if [[ -z "$QSH_SQLITE3_DISABLE_RESULT_PREPROCESSING" ]]; then
+  export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlite3/qsh-output-finalizer;
+fi;
+
+source $QSH_CLIENTS/generic/qsh-connect;
+
