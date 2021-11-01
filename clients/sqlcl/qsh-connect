@@ -3,10 +3,6 @@
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 QSH_TTY=$(tty)
 
-if [[ -z "$QSH_DISABLE_RESULT_PREPROCESSING" ]]; then
-  export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlcl/qsh-output-finalizer;
-fi;
-
 QSH_CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
 QSH_EXECUTE_QUERY=$QSH_TMP/execute.${PANE_ID}.sql
 QSH_PAGER_COMMAND=$QSH_SCRIPTS/qsh-pager;
