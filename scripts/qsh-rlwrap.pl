@@ -74,7 +74,7 @@ sub prompt {
       $page = QshPagerCheck::check($output);
     }
 
-    if ($page == 1) {
+    if ($page == 1 && $output ne "") {
       local $SIG{PIPE} = 'IGNORE'; # we don't want to die if the pipeline quits
       open PAGER, "| $pager";
       print PAGER $output;

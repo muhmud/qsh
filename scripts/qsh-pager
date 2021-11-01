@@ -1,5 +1,8 @@
 #!/bin/bash
 
+QSH_SCRIPTS="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_PAGING_SCRIPTS=$QSH_SCRIPTS/paging
+
 # The ID of the current pane, which should be the SQL client pane
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 
@@ -17,30 +20,6 @@ INPUT_FILE=$1
 # Optional processing args
 shift;
 PROCESSING_ARGS=$*
-
-# AWK script used to cleanup output result requests
-RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
-  BEGIN {
-    value_now = 0;
-    line_count = 0; 
-  } 
-
-  { 
-    line_count++;
-    if (($0 ~ /^[+-_][-=+_]+[+-_]$/ && line_count != 1)) {
-      if (value_now != 0) {
-        value_now = 0;
-      } else {
-        value_now = 1;
-      }
-    } else if ($0 ~ /^\([0-9]+ row[s]?(s)*\)$/) {
-      value_now = 0;
-    } else if (value_now != 0) {
-      print $0;
-    }
-  }
-EOF
-);
 
 # The pager to be used display results
 if [[ -z "$QSH_PAGER" ]]; then
@@ -64,18 +43,16 @@ if [[ -f "$RESULT_REQUEST" ]] && [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
 
   if [[ -z "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
     # Cleanup the results and put them into the output file
-    cat $INPUT_FILE | awk "$RESULT_REQUEST_CLEANUP" \
-        | sed 's/^|//g; s/|$//g; s/^://g; s/:$//g; s/^[[:space:]]*//g; s/[[:space:]]*$//g;' \
+    cat $INPUT_FILE \
+        | $QSH_PAGING_SCRIPTS/standard-cleanup \
+        | $QSH_PAGING_SCRIPTS/column-cleanup \
         > "$RESULT_REQUEST_OUTPUT";
   elif [[ "$RESULT_REQUEST_PERFORM_CLEANUP" == "TRAILING_SPACE" ]]; then
     # Cleanup the results and trailing space only
-    cat $INPUT_FILE | awk "$RESULT_REQUEST_CLEANUP" \
-        | sed 's/^|//g; s/|$//g; s/^://g; s/:$//g; s/[[:space:]]*$//g;' \
-        > "$RESULT_REQUEST_OUTPUT";
-  elif [[ "$RESULT_REQUEST_PERFORM_CLEANUP" =~ [0-9]+ ]]; then
     cat $INPUT_FILE \
-      | tail -n +$((RESULT_REQUEST_PERFORM_CLEANUP + 1)) \
-      > "$RESULT_REQUEST_OUTPUT";
+        | $QSH_PAGING_SCRIPTS/standard-cleanup \
+        | $QSH_PAGING_SCRIPTS/trailing-cleanup \
+        > "$RESULT_REQUEST_OUTPUT";
   elif [[ -f "$RESULT_REQUEST_PERFORM_CLEANUP" ]]; then
     # Used the specified file to cleanup the results
     cat $INPUT_FILE | "$RESULT_REQUEST_PERFORM_CLEANUP" $PROCESSING_ARGS > "$RESULT_REQUEST_OUTPUT";

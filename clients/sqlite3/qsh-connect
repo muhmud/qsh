@@ -6,5 +6,7 @@ if [[ -z "$QSH_SQLITE3_DISABLE_RESULT_PREPROCESSING" ]]; then
   export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/sqlite3/qsh-output-finalizer;
 fi;
 
+INVOCATION="$INVOCATION -table";
+
 source $QSH_CLIENTS/generic/qsh-connect;
 
