@@ -1,0 +1,10 @@
+#!/bin/bash
+
+QSH_GENERIC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_EXECUTE_QUERY=$1
+
+# Remove newlines
+if [[ "$QSH_FILE_TYPE" == "sql" ]]; then
+  $QSH_GENERIC/utils/remove-newlines "$QSH_EXECUTE_QUERY";
+fi;
+

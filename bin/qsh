@@ -48,6 +48,7 @@ function usage {
   exit 0;
 }
 
+FILE_TYPE=sql
 while getopts "f:t:c:" arg; do
   case $arg in
     c)
