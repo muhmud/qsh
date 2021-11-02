@@ -35,6 +35,10 @@ QSH_EXECUTE_QUERY_CURSOR=${QSH_EXECUTE_QUERY_CURSOR:-$QSH_TMP/execute.${PANE_ID}
 # script parameter will be empty
 OUTPUT_FILE=$1
 
+# If there's no output file specified, we are probably doing an initialization, so make sure
+# not having the file set doesn't interfere with anything
+[[ -z "$OUTPUT_FILE" ]] && OUTPUT_FILE=/dev/null;
+
 # Query editor options & default values
 QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
 QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
@@ -56,15 +60,17 @@ fi;
  
 # Guarantees that the output file will register as changed
 function touch_output {
-  case $OSTYPE in
-    linux*)
-      TS=$(date -d '+1 second' +"%Y%m%d%H%M.%S")
-      ;;
-    darwin*)
-      TS=$(date -v+1S +"%Y%m%d%H%M.%S")
-      ;;
-  esac
-  touch -m -t "$TS" $OUTPUT_FILE;
+  if [[ "$OUTPUT_FILE" != "/dev/null" ]]; then
+    case $OSTYPE in
+      linux*)
+        TS=$(date -d '+1 second' +"%Y%m%d%H%M.%S")
+        ;;
+      darwin*)
+        TS=$(date -v+1S +"%Y%m%d%H%M.%S")
+        ;;
+    esac
+    touch -m -t "$TS" $OUTPUT_FILE;
+  fi;
 }
 
 # If neither pane file exists, it must mean that this is the first time we are running in this

@@ -18,7 +18,7 @@ function usage() {
     has_tree=1;
   fi;
 
-  echo "usage: qsh-reg [-pxnvg] [-f type] [-t term] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnvgs] [-f type] [-t term] <name> <invocation>";
   echo "       qsh-reg [-deu] <name>";
   echo "       qsh-reg -c <name> <new-name>";
   echo;
@@ -28,6 +28,7 @@ function usage() {
   echo "  -n   Do not update the SQL client prompt when using the connection";
   echo "  -v   Vanilla connection, do not set any QSH properties";
   echo "  -g   Grab related environment variables now to restore when connecting";
+  echo "  -s   Startup with the editor in place";
   echo "  -f   File type for the connection (for generic tools)";
   echo "  -t   Terminal type for the connection (for generic tools)";
   echo;
@@ -45,10 +46,11 @@ function usage() {
   exit 0;
 }
 
+STARTUP_MODE=0
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvgdeuct:" arg; do
+while getopts "pxnvgsdeuct:" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -64,6 +66,9 @@ while getopts "pxnvgdeuct:" arg; do
       ;;
     g)
       GRAB_ENVIRONMENT=1
+      ;;
+    s)
+      STARTUP_MODE=1
       ;;
     d)
       DELETE=1
@@ -221,6 +226,7 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "invocation": "$INVOCATION",
   "prompt": $PROMPT,
   "vanilla": $VANILLA,
+  "mode": $STARTUP_MODE,
   "type": "$([[ ! -z "$FILE_TYPE" ]] && echo "$FILE_TYPE" || echo 'sql')",
   "terminal": "$([[ ! -z "$TERMINAL_TYPE" ]] && echo "$TERMINAL_TYPE" || echo '')",
   "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false'),

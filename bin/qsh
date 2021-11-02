@@ -26,13 +26,13 @@ function usage {
     has_tree=1;
   fi;
 
-  echo "usage: qsh <connection> | <invocation> ...";
-  echo "       qsh -f <type> -t <term> <invocation> ..."
+  echo "usage: qsh [-s] [-f <type>] [-t <term>] <invocation> ...";
+  echo "       qsh <connection> ..."
   echo "       qsh -c <command> <connection> ..."
   echo;
-  echo "Connections can be registered using qsh-reg, otherwise just invoke your";
-  echo "sql client to connect to a data source. In both cases, additional";
-  echo "command-line arguments can be provided."
+  echo "To use qsh, just prefix the command you would normally run with 'qsh'. If you";
+  echo "like to go straight into editor mode, specify the -s option, or set the"
+  echo "QSH_STARTUP_MODE environment variable to 1";
   echo;
   echo "When using qsh with a generic tool, such as a repl, use -f to specify the";
   echo "type of file to open by default in the editor. This can be useful for";
@@ -43,6 +43,10 @@ function usage {
   echo "For generic tools, you can also optionally use -t to change the terminal type";
   echo "used with rlwrap when starting up the tool. This can sometimes provide a better";
   echo "user experience.";
+  echo;
+  echo "Connections can be registered using qsh-reg, otherwise just invoke your";
+  echo "sql client to connect to a data source. In both cases, additional";
+  echo "command-line arguments can be provided."
   echo;
   echo "Use -c to provide a command, such as pg_dump or mysqldump, so that it can";
   echo "make use of a registered connection, providing additional arguments as";
@@ -56,8 +60,11 @@ function usage {
 }
 
 FILE_TYPE=sql
-while getopts "f:t:c:" arg; do
+while getopts "sf:t:c:" arg; do
   case $arg in
+    s)
+      QSH_STARTUP_MODE=1
+      ;;
     c)
       CLIENT_COMMAND=$OPTARG
       ;;
@@ -89,10 +96,15 @@ function client_connect {
     CLIENT_CONNECT="$QSH_CLIENTS/generic/qsh-connect";
   fi;
 
-  # Setup a bootstrap
-  cat <<EOF > "$QSH_BOOTSTRAP"
+  # If the startup mode is 1, startup QSH in advance
+  if [[ "$QSH_STARTUP_MODE" == "1" ]]; then
+    QSH_SQL_CLIENT=$CLIENT_NAME $QSH_SCRIPTS/qsh;
+  else
+    # Setup a bootstrap
+    cat <<EOF > "$QSH_BOOTSTRAP"
 export QSH_CLIENT=$QSH_CLIENTS/$CLIENT_NAME 
 EOF
+  fi;
 
   echo "$CLIENT_CONNECT";
 }
@@ -134,6 +146,11 @@ USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
 TERMINAL_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.terminal')";
+
+STARTUP_MODE="$(echo "$CONNECTION_DATA" | jq -r '.mode')";
+if [[ "$STARTUP_MODE" != "0" ]]; then
+  QSH_STARTUP_MODE=$STARTUP_MODE;
+fi;
 
 FILE_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.type')";
 if [[ "$FILE_TYPE" != "sql" ]]; then
