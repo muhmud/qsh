@@ -148,7 +148,7 @@ VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
 TERMINAL_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.terminal')";
 
 STARTUP_MODE="$(echo "$CONNECTION_DATA" | jq -r '.mode')";
-if [[ "$STARTUP_MODE" != "0" ]]; then
+if [[ "$STARTUP_MODE" != "0" ]] && [[ "$STARTUP_MODE" != "null" ]]; then
   QSH_STARTUP_MODE=$STARTUP_MODE;
 fi;
 
