@@ -6,6 +6,13 @@ QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CONNECTIONS=$QSH_BASE/connections
 QSH_TMP=/tmp/qsh
 
+# Other environment details
+WINDOW_ID=$(tmux display-message -p '#I')
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+
+# Bootstrap
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
+
 # Check that we are in a tmux session
 if [[ -z "${TMUX}" ]]; then
   echo "You must use qsh from within a tmux session";
@@ -81,6 +88,11 @@ function client_connect {
   if [[ ! -f "$CLIENT_CONNECT" ]]; then
     CLIENT_CONNECT="$QSH_CLIENTS/generic/qsh-connect";
   fi;
+
+  # Setup a bootstrap
+  cat <<EOF > "$QSH_BOOTSTRAP"
+export QSH_CLIENT=$QSH_CLIENTS/$CLIENT_NAME 
+EOF
 
   echo "$CLIENT_CONNECT";
 }

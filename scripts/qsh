@@ -21,7 +21,8 @@ QSH_TMP=/tmp/qsh
 CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
 EDITOR_PANE=$QSH_TMP/editor.${PANE_ID}
 
-# File used to bootstrap the session
+# File(s) used to start the session
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
 QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
 
 # The query file that will be used to transport the single query batch to be executed to the
@@ -112,6 +113,7 @@ export EDITOR_PANE_ID=$(tmux display-message -p '#{pane_id}')
 "$QSH_EDITOR" "$EDITOR_FILE";
 
 rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" "$CLIENT_PANE" "$QSH_EXECUTE_QUERY";
+
 EOF
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
@@ -138,6 +140,9 @@ EOF
 
   # Ensure the modified datetime of the output file looks legit
   touch_output;
+
+  # Remove bootstrap file, if it exists
+  rm -f "$QSH_BOOTSTRAP";
 
   exit 0;
 fi;
