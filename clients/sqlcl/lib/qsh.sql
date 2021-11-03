@@ -53,15 +53,14 @@ if (!executeSqlFile.exists()) {
       [ "sh", "-c", "'" + qshPager + "' '" + tempPath.toString() + "' '" + sqlFormat + "' < " + tty + " > " + tty ]
     );
     pager.waitFor();
+  } finally {
+    Files.delete(tempPath);
 
     var resultRequestFile = new File(resultRequest);
     if (resultRequestFile.exists()) {
       var resultRequestCompleteFile = new File(resultRequestComplete);
       resultRequestCompleteFile.createNewFile();
     }
-  } finally {
-    //Files.delete(tempPath);
-    print(tempPath.toString());
   }
 }
 /

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select user as TABLE_SCHEMA, TABLE_NAME, table_type,
+         obj_description(concat(table_schema, '.', table_name)::regclass::oid) as table_comment
+  from user_tables
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

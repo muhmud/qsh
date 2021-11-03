@@ -1,9 +1,0 @@
-#!/bin/bash
-
-SQL_FORMAT=$1
-if [[ "$SQL_FORMAT" == "ansiconsole" ]]; then
-  tail -n +4 | head -n -1;
-else
-  cat;
-fi;
-

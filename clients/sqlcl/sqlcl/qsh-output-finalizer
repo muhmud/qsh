@@ -1,9 +1,0 @@
-#!/bin/bash
-
-SQL_FORMAT=$1
-if [[ "$SQL_FORMAT" == "ansiconsole" ]]; then
-  sed '1d; 2s/\x1b\[[0-9;]*[mG]//g; 3s/_/-/g';
-else
-  cat;
-fi;
-

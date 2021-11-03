@@ -1,6 +1,0 @@
-#!/bin/bash
-
-cat <<EOF > $1
-select * from $(cat $1) fetch next 1000 rows only;
-EOF
-
