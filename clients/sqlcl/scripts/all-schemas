@@ -1,0 +1,13 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select username as schema_name
+  from all_users
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

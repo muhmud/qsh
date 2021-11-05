@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select SID as PROCESS_ID, USERNAME as USER_NAME, MACHINE as USER_ADDRESS, PROGRAM as APPLICATION_NAME,
+         LOGON_TIME as SESSION_START_TIMESTAMP, STATE, WAIT_CLASS as WAIT_TYPE, EVENT as WAIT_EVENT,
+        (case when BLOCKING_SESSION is not null then 1 else 0 end) as BLOCKED
+  from v\$session
+  where USERNAME = user
+  order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

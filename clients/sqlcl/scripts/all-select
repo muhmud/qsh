@@ -7,7 +7,7 @@ select * from (
   select user as TABLE_SCHEMA, TABLE_NAME,
          (case when TABLE_TYPE = 'TABLE' then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE,
          COMMENTS as TABLE_COMMENT
-  from user_tab_comments
+  from ALL_TAB_COMMENTS
   order by 1, 2
 ) t
 $QUERY_CUSTOMIZATION;
