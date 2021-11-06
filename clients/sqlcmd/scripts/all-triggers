@@ -21,7 +21,6 @@ select * from (
          object_schema_name(t.parent_id) as event_object_schema,
          object_name(t.parent_id) as event_object_name
   from sys.triggers t
-  where object_schema_name(t.object_id) not in ('INFORMATION_SCHEMA', 'sys', 'guest')
 ) t
 $QUERY_CUSTOMIZATION
 $ORDER_BY;

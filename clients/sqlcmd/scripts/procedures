@@ -9,10 +9,10 @@ fi;
 
 cat <<EOF > $1
 select * from (
-  select schema_name(schema_id) as SCHEMA_NAME, name as TABLE_NAME,
-         (case when type = 'T' then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE
-  from sys.all_objects
-  where type in ('T', 'V')
+  select routine_schema, routine_name, routine_type, routine_body
+  from information_schema.routines
+  where routine_schema not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+  and routine_type = 'PROCEDURE'
 ) t
 $QUERY_CUSTOMIZATION
 $ORDER_BY;

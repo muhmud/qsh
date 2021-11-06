@@ -4,14 +4,13 @@ QUERY_CUSTOMIZATION=$2
 
 CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
 if [[ $? -ne 0 ]]; then
-  ORDER_BY="order by 1, 2, 3"
+  ORDER_BY="order by 1, 2"
 fi;
 
 cat <<EOF > $1
 select * from (
-  select TABLE_SCHEMA, TABLE_NAME, TABLE_TYPE
-  from INFORMATION_SCHEMA.TABLES
-  where TABLE_TYPE = 'VIEW'
+  select routine_schema, routine_name, routine_type, routine_body
+  from information_schema.routines
 ) t
 $QUERY_CUSTOMIZATION
 $ORDER_BY;

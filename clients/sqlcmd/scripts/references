@@ -1,0 +1,26 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1, 2, 3"
+fi;
+
+cat <<EOF > $1
+select * from (
+  select cr.table_schema as referencing_table_schema, cr.table_name as referencing_table_name,
+         cr.constraint_name as referencing_constraint_name,
+         cu.table_schema as referenced_table_schema, cu.table_name as referenced_table_name,
+         cu.constraint_name as referenced_constraint_name
+  from information_schema.referential_constraints rc
+  inner join information_schema.table_constraints cr on rc.constraint_catalog = cr.constraint_catalog 
+      and rc.constraint_schema = cr.constraint_schema and rc.constraint_name = cr.constraint_name
+  inner join information_schema.table_constraints cu on rc.unique_constraint_catalog = cu.constraint_catalog 
+      and rc.unique_constraint_schema = cu.constraint_schema and rc.unique_constraint_name = cu.constraint_name
+  where cr.table_schema not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+
