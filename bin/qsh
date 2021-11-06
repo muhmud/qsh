@@ -97,6 +97,9 @@ function client_connect {
     CLIENT_CONNECT="$QSH_CLIENTS/generic/qsh-connect";
   fi;
 
+  # Perform init
+  source $QSH_CLIENTS/$CLIENT_NAME/qsh-init;
+
   # If the startup mode is 1, startup QSH in advance
   if [[ "$QSH_STARTUP_MODE" == "1" ]]; then
     QSH_SQL_CLIENT=$CLIENT_NAME $QSH_SCRIPTS/qsh;
@@ -107,7 +110,7 @@ export QSH_CLIENT=$QSH_CLIENTS/$CLIENT_NAME
 EOF
   fi;
 
-  echo "$CLIENT_CONNECT";
+  source "$CLIENT_CONNECT";
 }
 
 # Ensure we have a tmp area
@@ -134,7 +137,7 @@ if [[ ! -f "$CONNECTION_FILE" ]]; then
   PROMPT=true
 
   # Invoke the client
-  source "$(client_connect "$CLIENT")";
+  client_connect "$CLIENT";
   exit;
 fi;
 
@@ -190,5 +193,5 @@ if [[ "$QSH_ENV" != "null" ]]; then
   done;
 fi;
 
-source "$(client_connect "$CLIENT")";
+client_connect "$CLIENT";
 

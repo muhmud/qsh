@@ -3,28 +3,6 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-ACTUAL_CLIENT_NAME=$(basename "$CLIENT");
-
-if [[ "$VANILLA" != "true" ]]; then
-  export RLWRAP_EDITOR=$QSH_SCRIPTS/qsh
-
-  if [[ -z "$QSH_PAGER" ]]; then
-    if [[ ! -z "$REPL_MODE" ]]; then
-      export QSH_PAGER=cat
-    fi;
-  fi;
-fi;
-
-if [[ "$TERMINAL_TYPE" == "null" ]]; then
-  TERMINAL_TYPE=
-fi;
-
-if [[ -z "$TERMINAL_TYPE" ]]; then
-  if [[ ! -z "$REPL_MODE" ]]; then
-    TERMINAL_TYPE=dumb
-  fi;
-fi;
-
 if [[ -f "$CONNECTION_FILE" ]]; then
   eval "QSH_CONNECTION=\"$CONNECTION\" QSH_FILE_TYPE=\"$FILE_TYPE\" QSH_SQL_CLIENT=$ACTUAL_CLIENT_NAME QSH_RLWRAP_TERM=$TERMINAL_TYPE $QSH_SCRIPTS/rlwrap $CLIENT $INVOCATION";
 else

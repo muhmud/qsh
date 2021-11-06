@@ -3,20 +3,6 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-if [[ "$VANILLA" != "true" ]]; then
-  export EDITOR=$QSH_SCRIPTS/qsh
-  export PAGER=$QSH_SCRIPTS/qsh-pager
-
-  PROMPT_DATA="$(cat $QSH_CLIENTS/psql/qsh-prompt)";
-  QSH_PROMPT="\"--set=PROMPT1=$(echo -e "$PROMPT_DATA")\" \"--set=PROMPT2=*>> \" \"--set=PROMPT3=*>> \""
-fi;
-
-if [[ "$PROMPT" != "true" ]]; then
-  unset QSH_PROMPT;
-fi;
-
-PAGER_ALWAYS=--pset=pager=always
-
 if [[ -f "$CONNECTION_FILE" ]]; then
   eval "PGPASSFILE='$CLIENT_CONNECTION_FILE' QSH_CONNECTION=\"$CONNECTION\" $CLIENT $INVOCATION $PAGER_ALWAYS $QSH_PROMPT";
 else

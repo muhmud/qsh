@@ -50,7 +50,7 @@ QSH_FILE_TYPE=${QSH_FILE_TYPE:-sql}
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
 # Other variable(s)
-QSH_INIT_FILE="init.sh"
+QSH_INIT_FILE="qsh-init-editor"
 
 # Figure out the client, if we don't already know it
 if [[ -z "$QSH_SQL_CLIENT" ]]; then

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+QSH_SCRIPTS=$QSH_BASE/scripts
+QSH_CLIENTS=$QSH_BASE/clients
+
+ACTUAL_CLIENT_NAME=$(basename "$CLIENT");
+
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+export CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
+
+if [[ "$VANILLA" != "true" ]]; then
+  export RLWRAP_EDITOR=$QSH_SCRIPTS/qsh
+
+  if [[ -z "$QSH_PAGER" ]]; then
+    if [[ ! -z "$REPL_MODE" ]]; then
+      export QSH_PAGER=cat
+    fi;
+  fi;
+fi;
+
+if [[ "$TERMINAL_TYPE" == "null" ]]; then
+  TERMINAL_TYPE=
+fi;
+
+if [[ -z "$TERMINAL_TYPE" ]]; then
+  if [[ ! -z "$REPL_MODE" ]]; then
+    TERMINAL_TYPE=dumb
+  fi;
+fi;
+
