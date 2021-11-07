@@ -254,9 +254,16 @@ if [[ -f "$EDITOR_PANE" ]]; then
   if [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SCRIPT" ] || \
      [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]; then
     # Locate the client query script/snippet to call
-    QSH_SEARCH_PATH=$QSH_SEARCH_PATH:$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE;
+    if [[ -z "$QSH_SEARCH_PATH" ]]; then
+      QSH_SEARCH_PATH=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE;
+    else
+      QSH_SEARCH_PATH=$QSH_SEARCH_PATH:$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE;
+    fi;
+
+    # Remember where which is, as the path is about to be changed for the next command
     WHICH=$(which which);
 
+    # Search for the script
     QSH_QUERY_SCRIPT="$(PATH="$QSH_SEARCH_PATH" "$WHICH" "$QUERY_SCRIPT" 2>&1)";
     if [[ $? -ne 0 ]]; then
       echo "Invalid $SCRIPT_TYPE \"$QUERY_SCRIPT\"";

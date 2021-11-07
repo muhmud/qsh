@@ -1,0 +1,17 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select m.name as referencing_table_name, group_concat(fk."from", ', ') as referencing_columns,
+         fk."table" as referenced_table_name, group_concat(fk."to", ', ') as referenced_columns
+  from sqlite_master m
+  inner join pragma_foreign_key_list(m.name) fk
+  where m.type = 'table'
+  group by fk."table", m.name
+  order by m.name, group_concat(fk.seq)
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

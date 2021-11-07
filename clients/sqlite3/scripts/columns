@@ -1,0 +1,20 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select (case when m.type = 'table' then 'BASE TABLE' else 'VIEW' end) as table_type,
+         m.tbl_name as table_name,
+         c.name as column_name,
+         c.cid + 1 as ordinal_position,
+         c.dflt_value as column_default,
+         (case when c."notnull" = 1 then 'false' else 'true' end) as is_nullable,
+         c.type as data_type
+  from sqlite_master m
+  inner join pragma_table_info(m.name) c
+	order by 2, 3, 4
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

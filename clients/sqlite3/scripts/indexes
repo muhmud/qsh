@@ -1,0 +1,18 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select tbl_name as table_name, name as index_name,
+         (case when sql like 'CREATE UNIQUE INDEX %' then 'true' else 'false' end) as is_unique,
+         (select group_concat(name, ', ')
+          from pragma_index_info(m.name)
+          order by group_concat(cid)) as index_columns
+  from sqlite_master m
+  where type = 'index'
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+
