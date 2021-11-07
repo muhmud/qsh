@@ -2,6 +2,10 @@
 
 QSH_CLIENTS=$QSH_BASE/clients
 
-cp "$QSH_CLIENTS/sqlcl/connect.sql" "$CLIENT_CONNECTION_FILE";
-echo >> "$CLIENT_CONNECTION_FILE";
+if [[ ! -z "$USING_PASSWORD" ]]; then
+  echo "Passwords cannot be saved for sqlcl";
+  exit -1;
+fi;
+
+echo > "$CLIENT_CONNECTION_FILE";
 

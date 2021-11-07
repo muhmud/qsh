@@ -18,7 +18,7 @@ function usage() {
     has_tree=1;
   fi;
 
-  echo "usage: qsh-reg [-pxnvgs] [-f type] [-t term] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnvgsi] [-f type] [-t term] <name> <invocation>";
   echo "       qsh-reg [-deu] <name>";
   echo "       qsh-reg -c <name> <new-name>";
   echo;
@@ -31,6 +31,7 @@ function usage() {
   echo "  -s   Startup with the editor in place";
   echo "  -f   File type for the connection (for generic tools)";
   echo "  -t   Terminal type for the connection (for generic tools)";
+  echo "  -i   The specified command should be invoked as is (for generic tools)";
   echo;
   echo "Manage an existing connection, using:";
   echo "  -d   Delete a connection";
@@ -47,10 +48,11 @@ function usage() {
 }
 
 STARTUP_MODE=0
+INVOKE=0
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvgsdeuct:" arg; do
+while getopts "pxnvgsideucf:t:" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -69,6 +71,9 @@ while getopts "pxnvgsdeuct:" arg; do
       ;;
     s)
       STARTUP_MODE=1
+      ;;
+    i)
+      INVOKE=1
       ;;
     d)
       DELETE=1
@@ -209,7 +214,11 @@ if [[ ! -z "$GRAB_ENVIRONMENT" ]]; then
   {
     "QSH_PAGER": "$QSH_PAGER",
     "QSH_SCRIPTS_PATH": "$QSH_SCRIPTS_PATH",
-    "QSH_SNIPPETS_PATH": "$QSH_SNIPPETS_PATH"
+    "QSH_SNIPPETS_PATH": "$QSH_SNIPPETS_PATH",
+    "QSH_EDITOR_COMMAND": "$QSH_EDITOR_COMMAND",
+    "QSH_NEWLINE_ON_COMMAND": "$QSH_NEWLINE_ON_COMMAND",
+    "VISUAL": "$VISUAL",
+    "EDITOR": "$EDITOR"
   }
 EOF
   );
@@ -227,6 +236,7 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "prompt": $PROMPT,
   "vanilla": $VANILLA,
   "mode": $STARTUP_MODE,
+  "invoke": $INVOKE,
   "type": "$([[ ! -z "$FILE_TYPE" ]] && echo "$FILE_TYPE" || echo 'sql')",
   "terminal": "$([[ ! -z "$TERMINAL_TYPE" ]] && echo "$TERMINAL_TYPE" || echo '')",
   "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false'),

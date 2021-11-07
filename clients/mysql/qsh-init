@@ -3,10 +3,6 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-if [[ "$USING_PASSWORD" == "true" ]]; then
-  LOGIN_PATH=--defaults-file=$CLIENT_CONNECTION_FILE
-fi;
-
 if [[ "$VANILLA" != "true" ]]; then
   export EDITOR=$QSH_SCRIPTS/qsh
 

@@ -1,4 +1,9 @@
 
-export QSH_EDITOR_COMMAND='"^^"'
-export QSH_NEWLINE_ON_COMMAND=0
+if [[ -z "$QSH_EDITOR_COMMAND" ]]; then
+  export QSH_EDITOR_COMMAND='"^^"';
+fi;
+
+if [[ -z "$QSH_NEWLINE_ON_COMMAND" ]]; then
+  export QSH_NEWLINE_ON_COMMAND=0
+fi;
 

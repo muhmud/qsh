@@ -39,9 +39,6 @@ OUTPUT_FILE=$1
 # not having the file set doesn't interfere with anything
 [[ -z "$OUTPUT_FILE" ]] && OUTPUT_FILE=/dev/null;
 
-# Query editor options & default values
-QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
-QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
 QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
 QSH_FILE_TYPE=${QSH_FILE_TYPE:-sql}
@@ -96,6 +93,10 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # Setup environment
   source "$QSH_ENV";
+
+  # Set defaults
+  QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
+  QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
 
   # Setup the session
   cat <<EOF > "$QSH_SESSION"
