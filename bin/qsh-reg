@@ -18,7 +18,7 @@ function usage() {
     has_tree=1;
   fi;
 
-  echo "usage: qsh-reg [-pxnvgsi] [-f type] [-t term] <name> <invocation>";
+  echo "usage: qsh-reg [-pxnvgsir] [-f type] [-t term] <name> <invocation>";
   echo "       qsh-reg [-deu] <name>";
   echo "       qsh-reg -c <name> <new-name>";
   echo;
@@ -32,6 +32,7 @@ function usage() {
   echo "  -f   File type for the connection (for generic tools)";
   echo "  -t   Terminal type for the connection (for generic tools)";
   echo "  -i   The specified command should be invoked as is (for generic tools)";
+  echo "  -r   Use repl mode (for generic tools)";
   echo;
   echo "Manage an existing connection, using:";
   echo "  -d   Delete a connection";
@@ -47,12 +48,13 @@ function usage() {
   exit 0;
 }
 
+REPL_MODE=0
 STARTUP_MODE=0
 INVOKE=0
 PROMPT=true
 VANILLA=false
 
-while getopts "pxnvgsideucf:t:" arg; do
+while getopts "pxnvgsirdeucf:t:" arg; do
   case $arg in
     p)
       USING_PASSWORD=1
@@ -74,6 +76,9 @@ while getopts "pxnvgsideucf:t:" arg; do
       ;;
     i)
       INVOKE=1
+      ;;
+    r)
+      REPL_MODE=1
       ;;
     d)
       DELETE=1
@@ -237,6 +242,7 @@ cat <<EOF | jq > "$CONNECTION_FILE"
   "vanilla": $VANILLA,
   "mode": $STARTUP_MODE,
   "invoke": $INVOKE,
+  "repl": $REPL_MODE,
   "type": "$([[ ! -z "$FILE_TYPE" ]] && echo "$FILE_TYPE" || echo 'sql')",
   "terminal": "$([[ ! -z "$TERMINAL_TYPE" ]] && echo "$TERMINAL_TYPE" || echo '')",
   "using_password": $([[ ! -z "$USING_PASSWORD" ]] && echo 'true' || echo 'false'),

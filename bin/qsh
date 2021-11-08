@@ -48,7 +48,7 @@ function usage {
     has_tree=1;
   fi;
 
-  echo "usage: qsh [-s] [-i] [-f <type>] [-t <term>] <invocation> ...";
+  echo "usage: qsh [-sir] [-f <type>] [-t <term>] <invocation> ...";
   echo "       qsh <connection> ..."
   echo "       qsh -c <command> <connection> ..."
   echo;
@@ -60,8 +60,8 @@ function usage {
   echo "When using qsh with a generic tool, such as a repl, use -f to specify the";
   echo "type of file to open by default in the editor. This can be useful for";
   echo "accessing features such as completion. Using this option implicitly sets";
-  echo "the pager to cat if a \$QSH_PAGER has not been set, which can sometimes";
-  echo "provide better text rendering for REPLs.";
+  echo "repl mode to be active, which can be explicitly set using the -r option. This";
+  echo "can sometimes provide better user experience for REPLs.";
   echo;
   echo "For generic tools, you can also optionally use -t to change the terminal type";
   echo "used with rlwrap when starting up the tool. This can sometimes provide a better";
@@ -85,10 +85,13 @@ function usage {
 INVOKE=0
 FILE_TYPE=sql
 
-while getopts "sif:t:c:" arg; do
+while getopts "sirf:t:c:" arg; do
   case $arg in
     s)
       QSH_STARTUP_MODE=1
+      ;;
+    r)
+      REPL_MODE=1
       ;;
     i)
       INVOKE=1
@@ -186,6 +189,11 @@ TERMINAL_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.terminal')";
 INVOKE="$(echo "$CONNECTION_DATA" | jq -r '.invoke')";
 if [[ "$INVOKE" == "null" ]]; then
   INVOKE=0
+fi;
+
+REPL_MODE="$(echo "$CONNECTION_DATA" | jq -r '.repl')";
+if [[ "$REPL_MODE" == "null" ]]; then
+  REPL_MODE=0
 fi;
 
 STARTUP_MODE="$(echo "$CONNECTION_DATA" | jq -r '.mode')";
