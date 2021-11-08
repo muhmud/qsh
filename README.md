@@ -197,7 +197,10 @@ You can register the settings you use for generic tools, including certain envir
 For example, the following registers an invocation for using `qsh` with `zsh`:
 
 ```
-$ QSH_EDITOR_COMMAND="\u001B\u0016" QSH_NEWLINE_ON_COMMAND=1 VISUAL=~/.qsh/scripts/qsh qsh-reg -gisf sh zsh zsh
+$ QSH_EDITOR_COMMAND="\u001B\u0016" \
+  QSH_NEWLINE_ON_COMMAND=1 \
+  VISUAL=~/.qsh/scripts/qsh \
+    qsh-reg -gisf sh zsh zsh
 ```
 
 * `-g` - Grab environment variables, which will be restored when the tool is started
