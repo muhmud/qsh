@@ -1,0 +1,10 @@
+#!/bin/bash
+
+QSH_CLIENTS=$QSH_BASE/clients
+
+if [[ -s "$CLIENT_CONNECTION_FILE" ]]; then
+  SQLCMDPASSWORD="$(cat $CLIENT_CONNECTION_FILE)" source $QSH_CLIENTS/generic/qsh-connect;
+else
+  source $QSH_CLIENTS/generic/qsh-connect;
+fi;
+

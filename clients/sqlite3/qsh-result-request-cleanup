@@ -1,0 +1,8 @@
+#!/bin/bash
+
+QSH_SQLITE3="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+QSH_PAGING_SCRIPTS=$QSH_SQLITE3/../../scripts/paging
+
+$QSH_SQLITE3/qsh-output-finalizer \
+  | $QSH_PAGING_SCRIPTS/standard-cleanup \
+  | $QSH_PAGING_SCRIPTS/column-cleanup;

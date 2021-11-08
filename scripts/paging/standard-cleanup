@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# AWK script used to cleanup output result requests
+RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
+  BEGIN {
+    value_now = 0;
+    line_count = 0; 
+  } 
+
+  { 
+    line_count++;
+    if (($0 ~ /^[+-_][-=+_]+[+-_]\s*$/ && line_count != 1)) {
+      if (value_now != 0) {
+        value_now = 0;
+      } else {
+        value_now = 1;
+      }
+    } else if ($0 ~ /^\([0-9]+ row[s]? [a-z]*\)\s*$/) {
+      value_now = 0;
+    } else if (value_now != 0) {
+      print $0;
+    }
+  }
+EOF
+);
+
+awk "$RESULT_REQUEST_CLEANUP";
+

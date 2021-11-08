@@ -1,0 +1,12 @@
+#!/bin/bash
+
+SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+cat <<EOF > $1
+select * from (
+  $(ls -1 "$SCRIPTS_DIR" | sed "s/\(.*\)/select '\1' as scripts from dual union all/g")
+  select null from dual where 1 = 0
+) t
+order by 1;
+EOF
+

@@ -2,7 +2,21 @@
 
 QSH_BASE=~/.qsh
 QSH_CLIENTS=$QSH_BASE/clients
+QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CONNECTIONS=$QSH_BASE/connections
+QSH_TMP=/tmp/qsh
+
+# Other environment details
+WINDOW_ID=$(tmux display-message -p '#I')
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+QSH_TTY=$(tty)
+
+# Bootstrap
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
+
+# Other files
+QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
+CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
 
 # Check that we are in a tmux session
 if [[ -z "${TMUX}" ]]; then
@@ -10,15 +24,48 @@ if [[ -z "${TMUX}" ]]; then
   exit -1;
 fi;
 
+# Cleanup any previous files
+if [[ -f "$CLIENT_PANE" ]]; then
+  EDITOR_PANE_ID="$(cat "$CLIENT_PANE")";
+  EDITOR_PANE=$QSH_TMP/editor.${EDITOR_PANE_ID};
+
+  if [[ -f "$EDITOR_PANE" ]]; then
+    CLIENT_PANE_ID="$(cat "$EDITOR_PANE")";
+    if [[ "$CLIENT_PANE_ID" == "$PANE_ID" ]]; then
+      EXISTING_QSH_SESSION=1
+    fi;
+  fi;
+
+  if [[ -z "$EXISTING_QSH_SESSION" ]]; then
+    rm -f "$QSH_BOOTSTRAP" "$QSH_SESSION" "$CLIENT_PANE" "$EDITOR_PANE";
+  fi;
+fi;
+
 function usage {
   local has_tree=0;
-  which tree > /dev/null;
+  which tree > /dev/null 2>&1;
   if [[ $? == 0 ]]; then
     has_tree=1;
   fi;
 
-  echo "usage: qsh <connection> | <invocation> ...";
+  echo "usage: qsh [-sir] [-f <type>] [-t <term>] <invocation> ...";
+  echo "       qsh <connection> ..."
   echo "       qsh -c <command> <connection> ..."
+  echo;
+  echo "To use qsh, just prefix the command you would normally run with 'qsh'. If you";
+  echo "like to go straight into editor mode, specify the -s option, or set the"
+  echo "QSH_STARTUP_MODE environment variable to 1. The -i option is for generic tools";
+  echo "where the specified invocation should be used as is, and not using rlwrap."
+  echo;
+  echo "When using qsh with a generic tool, such as a repl, use -f to specify the";
+  echo "type of file to open by default in the editor. This can be useful for";
+  echo "accessing features such as completion. Using this option implicitly sets";
+  echo "repl mode to be active, which can be explicitly set using the -r option. This";
+  echo "can sometimes provide better user experience for REPLs.";
+  echo;
+  echo "For generic tools, you can also optionally use -t to change the terminal type";
+  echo "used with rlwrap when starting up the tool. This can sometimes provide a better";
+  echo "user experience.";
   echo;
   echo "Connections can be registered using qsh-reg, otherwise just invoke your";
   echo "sql client to connect to a data source. In both cases, additional";
@@ -35,16 +82,75 @@ function usage {
   exit 0;
 }
 
-while getopts "c:" arg; do
+INVOKE=0
+FILE_TYPE=sql
+
+while getopts "sirf:t:c:" arg; do
   case $arg in
+    s)
+      QSH_STARTUP_MODE=1
+      ;;
+    r)
+      REPL_MODE=1
+      ;;
+    i)
+      INVOKE=1
+      ;;
     c)
       CLIENT_COMMAND=$OPTARG
+      ;;
+    f)
+      FILE_TYPE=$OPTARG
+      if [[ "$FILE_TYPE" != "sql" ]]; then
+        REPL_MODE=1
+      fi;
+      ;;
+    t)
+      TERMINAL_TYPE=$OPTARG
       ;;
   esac
 done
 
 # Move past the options
 shift $(expr $OPTIND - 1);
+
+function client_connect {
+  local CLIENT=$1
+
+  CLIENT_NAME=$(basename "$CLIENT");
+  if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
+    CLIENT_NAME=generic
+  fi;
+
+  CLIENT_CONNECT="$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
+  if [[ ! -f "$CLIENT_CONNECT" ]]; then
+    CLIENT_CONNECT="$QSH_CLIENTS/generic/qsh-connect";
+  fi;
+
+  # Perform init
+  source $QSH_CLIENTS/$CLIENT_NAME/qsh-init;
+
+  # If the startup mode is 1, startup QSH in advance
+  if [[ "$QSH_STARTUP_MODE" == "1" ]]; then
+    QSH_SQL_CLIENT=$CLIENT_NAME \
+    QSH_FILE_TYPE=$FILE_TYPE \
+      $QSH_SCRIPTS/qsh;
+  else
+    # Setup a bootstrap
+    cat <<EOF > "$QSH_BOOTSTRAP"
+export QSH_CLIENT=$QSH_CLIENTS/$CLIENT_NAME 
+EOF
+  fi;
+
+  if [[ "$INVOKE" == "0" ]]; then
+    source "$CLIENT_CONNECT";
+  else
+    "$CLIENT" $INVOCATION;
+  fi;
+}
+
+# Ensure we have a tmp area
+mkdir -p "$QSH_TMP";
 
 CONNECTION=$1
 shift 1;
@@ -66,27 +172,39 @@ if [[ ! -f "$CONNECTION_FILE" ]]; then
   PASSWORD=null
   PROMPT=true
 
-  CLIENT_NAME=$(basename "$CLIENT");
-  if [[ ! -d "$QSH_CLIENTS/$CLIENT_NAME" ]]; then
-    echo "invalid connection/invocation";
-    exit -1;
-  fi;
-
   # Invoke the client
-  source "$QSH_CLIENTS/$CLIENT_NAME/qsh-connect";
+  client_connect "$CLIENT";
   exit;
 fi;
 
 CONNECTION_DATA=$(cat "$CONNECTION_FILE");
 
 CLIENT="$(echo "$CONNECTION_DATA" | jq -r '.client')";
-CLIENT_NAME=$(basename "$CLIENT");
-
 INVOCATION="$(echo "$CONNECTION_DATA" | jq -r '.invocation')";
 PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 USING_PASSWORD="$(echo "$CONNECTION_DATA" | jq -r '.using_password')";
-PROMPT="$(echo "$CONNECTION_DATA" | jq -r '.prompt')";
 VANILLA="$(echo "$CONNECTION_DATA" | jq -r '.vanilla')";
+TERMINAL_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.terminal')";
+
+INVOKE="$(echo "$CONNECTION_DATA" | jq -r '.invoke')";
+if [[ "$INVOKE" == "null" ]]; then
+  INVOKE=0
+fi;
+
+REPL_MODE="$(echo "$CONNECTION_DATA" | jq -r '.repl')";
+if [[ "$REPL_MODE" == "null" ]]; then
+  REPL_MODE=0
+fi;
+
+STARTUP_MODE="$(echo "$CONNECTION_DATA" | jq -r '.mode')";
+if [[ "$STARTUP_MODE" != "0" ]] && [[ "$STARTUP_MODE" != "null" ]]; then
+  QSH_STARTUP_MODE=$STARTUP_MODE;
+fi;
+
+FILE_TYPE="$(echo "$CONNECTION_DATA" | jq -r '.type')";
+if [[ "$FILE_TYPE" != "sql" ]]; then
+  REPL_MODE=1
+fi;
 
 if [[ ! -z "$CLIENT_COMMAND" ]]; then
   CLIENT=$CLIENT_COMMAND
@@ -100,4 +218,25 @@ fi;
 
 INVOCATION="$INVOCATION $*";
 
-source "$QSH_BASE/clients/$CLIENT_NAME/qsh-connect";
+# Setup environment, if necessary
+QSH_ENV="$(echo "$CONNECTION_DATA" | jq '.env')";
+if [[ "$QSH_ENV" != "null" ]]; then
+  QSH_ENV_KEYS="$(echo "$QSH_ENV" | jq 'keys')";
+
+  ENV_INDEX=0;
+  while [[ $ENV_INDEX -ne -1 ]];
+  do
+    ENV_VARIABLE="$(echo "$QSH_ENV_KEYS" | jq -r ".[$ENV_INDEX]")";
+    if [[ "$ENV_VARIABLE" != "null" ]]; then
+      ENV_VALUE="$(echo "$QSH_ENV" | jq -r ".$ENV_VARIABLE")";
+      export $ENV_VARIABLE=$ENV_VALUE;
+
+      ENV_INDEX=$((ENV_INDEX + 1));
+    else
+      ENV_INDEX=-1;
+    fi;
+  done;
+fi;
+
+client_connect "$CLIENT";
+

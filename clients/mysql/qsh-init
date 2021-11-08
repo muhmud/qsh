@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QSH_SCRIPTS=$QSH_BASE/scripts
+QSH_CLIENTS=$QSH_BASE/clients
+
+if [[ "$VANILLA" != "true" ]]; then
+  export EDITOR=$QSH_SCRIPTS/qsh
+
+  QSH_PROMPT="\"--prompt=$(cat $QSH_CLIENTS/mysql/qsh-prompt)\"";
+  QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
+fi;
+
+if [[ "$PROMPT" != "true" ]]; then
+  unset QSH_PROMPT;
+fi;
+

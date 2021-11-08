@@ -1,0 +1,20 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1"
+fi;
+
+cat <<EOF > $1
+select * from (
+    select SCHEMA_NAME
+    from INFORMATION_SCHEMA.SCHEMATA
+    where SCHEMA_NAME not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+    and SCHEMA_NAME not like 'db[_]%'
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+

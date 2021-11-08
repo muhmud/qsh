@@ -1,0 +1,19 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1, 2"
+fi;
+
+cat <<EOF > $1
+select * from (
+  select routine_schema, routine_name, routine_type, routine_body
+  from information_schema.routines
+  where routine_type = 'PROCEDURE'
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select user as ROUTINE_SCHEMA, OBJECT_NAME as ROUTINE_NAME, OBJECT_TYPE as ROUTINE_TYPE
+  from USER_PROCEDURES
+  where OBJECT_TYPE = 'PROCEDURE'
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

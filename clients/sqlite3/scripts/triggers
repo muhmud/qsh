@@ -1,0 +1,14 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select name as trigger_name, tbl_name as event_object_table 
+  from sqlite_master
+  where type = 'trigger'
+	order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

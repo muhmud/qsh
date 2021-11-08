@@ -1,15 +1,23 @@
 # qsh
-Query SHell - improved database querying from your terminal
+Query SHell - improved querying from your terminal
 
 ![QSH](images/qsh.png)
 
-Currently supports `mysql`, `postgresql`, and `monetdb`.
+Currently supports:
+* `sqlite3`
+* `mysql`
+* `psql`
+* `sqlcmd` (for `mssql`)
+* `sqlcl` (for `oracle`)
+* `mclient` (for `monetdb`)
+
+There is also a generic mode, which can potentially be used with other tools not on this list. The generic mode can be used with non-database tools as well, like the `redis-cli`, REPLs and even shells, such as `bash`. See the [usage](https://github.com/muhmud/qsh/#generic-mode) section below for more details.
 
 ## Prerequisites
 
-You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager. Installing [jq](https://github.com/stedolan/jq) and `tree` would also be a good idea.
+You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager. Installing [jq](https://github.com/stedolan/jq) and `tree` would also be a good idea. For the generic mode, you will need `rlwrap` and `perl`.
 
-For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended, however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager.
+For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended (ensure you have the latest version), however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager.
 
 To format SQL statements, you will need python 3 and [sqlparse](https://github.com/andialbrecht/sqlparse).
 
@@ -25,20 +33,13 @@ $ git clone https://github.com/muhmud/qsh.git ~/.qsh
 
 And then add the `~/.qsh/bin` directory to your `PATH`.
 
-You now just need to setup the editor you want to use for writing SQL statements, which will be triggered from your SQL client tool. If you want to, you can setup keyboard shortcuts for this in `~/.inputrc`. The following example does this for `Alt-q`:
+You now just need to setup the editor you want to use for writing SQL statements, which will be triggered from your SQL client tool. If you want to, and it's recommended, you can setup a keyboard shortcut for this in your tmux config. This will give you the same consistent shortcut for starting the editor from any tool.
+
+The following example does this for `Alt-q`:
 
 ```
-$if mysql
-  "\eq": '\\e;\C-m'
-$endif
-
-$if psql
-  "\eq": '\\e\C-m'
-$endif
-
-$if MAPIClient
-  "\eq": '\ee'
-$endif
+# qsh
+bind-key -n M-q run-shell ~/.qsh/bin/qsh-start
 ```
 
 You can currently use either `vim`/`nvim` or `micro`.
@@ -61,63 +62,71 @@ These are the default key mappings, which can be disabled by setting `g:qsh_enab
 
 ```
 " Alt+e (for execute)
-vnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteSelection()<CR>
-vnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteSelection()<CR>
-vnoremap <silent> <buffer> <unique> <F5> :call QshExecuteSelection()<CR>
+vnoremap <silent> <unique> <Esc>e :call QshExecuteSelection()<CR>
+vnoremap <silent> <unique> <M-e> :call QshExecuteSelection()<CR>
+vnoremap <silent> <unique> <F5> :call QshExecuteSelection()<CR>
+inoremap <silent> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
+inoremap <silent> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
+inoremap <silent> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
+nnoremap <silent> <unique> <Esc>e :call QshExecuteLine()<CR>
+nnoremap <silent> <unique> <M-e> :call QshExecuteLine()<CR>
+nnoremap <silent> <unique> <F5> :call QshExecuteLine()<CR>
 
 " Alt+y
-inoremap <silent> <buffer> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
-inoremap <silent> <buffer> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
-nnoremap <silent> <buffer> <unique> <Esc>y :call QshExecuteAll()<CR>
-nnoremap <silent> <buffer> <unique> <M-y> :call QshExecuteAll()<CR>
+inoremap <silent> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
+inoremap <silent> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
+nnoremap <silent> <unique> <Esc>y :call QshExecuteAll()<CR>
+nnoremap <silent> <unique> <M-y> :call QshExecuteAll()<CR>
 
 " Alt+g (for go)
-inoremap <silent> <buffer> <unique> <Esc>g <C-O>:call QshExecute()<CR>
-inoremap <silent> <buffer> <unique> <M-g> <C-O>:call QshExecute()<CR>
-nnoremap <silent> <buffer> <unique> <Esc>g :call QshExecute()<CR>
-nnoremap <silent> <buffer> <unique> <M-g> :call QshExecute()<CR>
+inoremap <silent> <unique> <Esc>g <C-O>:call QshExecute()<CR>
+inoremap <silent> <unique> <M-g> <C-O>:call QshExecute()<CR>
+nnoremap <silent> <unique> <Esc>g :call QshExecute()<CR>
+nnoremap <silent> <unique> <M-g> :call QshExecute()<CR>
 
 " Alt+G
-inoremap <silent> <buffer> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
-inoremap <silent> <buffer> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
-nnoremap <silent> <buffer> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
-nnoremap <silent> <buffer> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
+inoremap <silent> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
+inoremap <silent> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
+nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
+nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
 
 " Alt+d (for describe)
-vnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
-vnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
-nnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
-nnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
-inoremap <silent> <buffer> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
-inoremap <silent> <buffer> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
+vnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
+vnoremap <silent> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
+nnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
+nnoremap <silent> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
+inoremap <silent> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
+inoremap <silent> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
 
 " Alt+r (for rows)
-vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
-vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
-nnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
-nnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
-inoremap <silent> <buffer> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
-inoremap <silent> <buffer> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
+vnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
+vnoremap <silent> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
+nnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
+nnoremap <silent> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
+inoremap <silent> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
+inoremap <silent> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
 
 " Alt+t (for tidy)
-vnoremap <silent> <buffer> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
-vnoremap <silent> <buffer> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
+vnoremap <silent> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
+vnoremap <silent> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
 
 " Alt+v
-vnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
-vnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
-nnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScript()<CR>
-nnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScript()<CR>
-inoremap <silent> <buffer> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
-inoremap <silent> <buffer> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
+vnoremap <silent> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
+vnoremap <silent> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
+nnoremap <silent> <unique> <Esc>v :call QshExecuteScript()<CR>
+nnoremap <silent> <unique> <M-v> :call QshExecuteScript()<CR>
+inoremap <silent> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
+inoremap <silent> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
 
 " Alt+Space
-vnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
-vnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
-nnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
-nnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippet()<CR>
-inoremap <silent> <buffer> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
-inoremap <silent> <buffer> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+vnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
+vnoremap <silent> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
+nnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
+nnoremap <silent> <unique> <M-Space> :call QshExecuteSnippet()<CR>
+inoremap <silent> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
+inoremap <silent> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+
+
 ```
 
 You can add custom key mappings like this:
@@ -159,9 +168,50 @@ From within a `tmux` session, prefix the invocation of your SQL client with `qsh
 $ qsh psql
 ```
 
-This will setup your SQL client environment appropriately for `qsh`. Now, trigger the editor using the command for your environment. For `mysql`, this would be `\e;`, and for `psql`, `\e`, or if you setup a keyboard shortcut, as described above, you could use that also.
+This will setup your SQL client environment appropriately for `qsh`. Now, trigger the editor using the command for your environment. For `mysql`, this would be `\e;`, and for `psql`, `\e` or if you setup a keyboard shortcut in your tmux config, as described above, you could use that also. Alternatively, use the `-s` option to startup the editor automatically.
 
 You should see the editor pane created, where you can now type in queries. A default SQL file is created for you, however, you could open up any other file you need to.
+
+**Note: For `sqlcl`, you would start the editor by using `@qsh`**
+
+### Generic Mode
+
+If you invoke a tool that `qsh` does not know about, it will go into generic mode and will attempt to give you a usable querying experience, so you shouldn't need to do anything differently.
+
+If your terminal looks messed up when the tool starts, try to use the REPL mode by specifying the `-r` option:
+
+```
+$ qsh -r redis-cli
+```
+
+You can also use the `-f` option to change the extension of the file opened up in the editor. This can be useful to enable language/domain specific features for the tool you are using. Setting this value to something that isn't `sql` implicitly enables REPL mode:
+
+```
+$ qsh -f js node
+```
+
+You can use scripts and snippets with generic mode tools by setting the `QSH_SCRIPTS_PATH` and `QSH_SNIPPETS_PATH` environment variables. See the sections below for details on how these work.
+
+You can register the settings you use for generic tools, including certain environment variables, just as you would register a connection for a database. This makes it easier to invoke the tool in the same way in the future. See the [registering connections](https://github.com/muhmud/qsh/#registering-connections) section for more details, or just run the `qsh` and/or `qsh-reg` tools without any arguments.
+
+For example, the following registers an invocation for using `qsh` with `zsh`:
+
+```
+$ QSH_EDITOR_COMMAND="\u001B\u0016" QSH_NEWLINE_ON_COMMAND=1 VISUAL=~/.qsh/scripts/qsh qsh-reg -gisf sh zsh zsh
+```
+
+* `-g` - Grab environment variables, which will be restored when the tool is started
+* `-i` - Invoke the tool as is, i.e. without `rlwrap`
+* `-s` - Go straight into editor mode
+* `-f sh` - Set the file extension for the default file opened up in the editor to `sh`
+* `zsh` - The name of the invocation to create
+* `zsh` - The actual invocation of zsh
+
+Now this invocation of qsh can be started like this:
+
+```
+$ qsh zsh
+```
 
 ### Executing Queries
 
@@ -223,6 +273,8 @@ all-procedures  all-select      all-views     functions  schemas     sessions
 
 ```
 
+You can keep your own scripts in separate directories and have `qsh` include them in its search by adding them to the `QSH_SCRIPTS_PATH` environment variable. 
+
 #### Named Scripts
 
 * `Alt-d` - Describe a particular table, which may or may not be highlighted
@@ -251,6 +303,8 @@ The snippets currently available are:
    + `script-view(<view-name>)` - Script out a view
 
 **Note: When scripting tables for `postgresql`, the invocation of `psql` must be passed to `pg_dump`. If the invocation involves typing in a password, you will be prompted to enter it. For this reason, it may be better to [register a connection](https://github.com/muhmud/qsh/#registering-connections).**
+
+You can keep your own snippets in separate directories and have `qsh` include them in its search by adding them to the `QSH_SNIPPETS_PATH` environment variable.
 
 #### Named Snippets
 
@@ -306,7 +360,9 @@ $ qsh -c pg_dump dev-server --table=public.some_table -s
 The following environment variables can be changed if required:
 
 * `QSH_EDITOR` - The editor you are going to be using, which defaults to `$VISUAL`
-* `QSH_PAGER` - The pager you will be using, which by default will try `pspg`, `less`, and `cat` in that order. 
+* `QSH_PAGER` - The pager you will be using, which by default will try `pspg`, `less`, and `cat` in that order.
+* `QSH_SCRIPTS_PATH` - Additional directories, separated by `:`, to search for scripts in
+* `QSH_SNIPPETS_PATH` - Additional directories, separated by `:`, to search for snippets in
 
 ## Using SSH
 
@@ -320,6 +376,12 @@ You can update your local copy like this:
 
 ```
 $ git -C ~/.qsh pull --rebase
+```
+
+If you're using the `micro` editor, you will also need to update the editor plugin:
+
+```
+$ cp -r ~/.qsh/editors/micro/* ~/.config/micro/plug/qsh/.
 ```
 
 ## Exit

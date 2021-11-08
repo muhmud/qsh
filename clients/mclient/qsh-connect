@@ -3,17 +3,5 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-if [[ "$VANILLA" != "true" ]]; then
-  export VISUAL=$QSH_SCRIPTS/qsh
-
-  QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
-fi;
-
-if [[ -f "$CONNECTION_FILE" ]]; then
-  export DOTMONETDBFILE=$CLIENT_CONNECTION_FILE
-
-  INVOCATION="$(echo "$INVOCATION" | sed 's/\(.*\) -u.*/\1/g')";
-fi;
-
 eval "QSH_CONNECTION=\"$CONNECTION\" QSH_INVOCATION=\"$INVOCATION\" $CLIENT $INVOCATION --width=-1 $QSH_PAGER";
 

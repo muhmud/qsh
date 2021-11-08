@@ -7,79 +7,108 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Only do this when not done yet for this buffer
-if exists("b:did_qsh_ftplugin")
+if exists("g:loaded_qsh")
   finish
 endif
-let b:did_qsh_ftplugin = 1
+let g:loaded_qsh = 1
+
+" Script variable(s)
+let s:qsh_enabled = $QSH_ENABLE == 1 ? 1 : 0
+let s:qsh_keys_mapped = 0
 
 function QshApplyDefaultKeyMappings()
-  " Alt+e (for execute)
-  vnoremap <silent> <buffer> <unique> <Esc>e :call QshExecuteSelection()<CR>
-  vnoremap <silent> <buffer> <unique> <M-e> :call QshExecuteSelection()<CR>
-  vnoremap <silent> <buffer> <unique> <F5> :call QshExecuteSelection()<CR>
+  if s:qsh_keys_mapped == 0
+    " Alt+e (for execute)
+    vnoremap <silent> <unique> <Esc>e :call QshExecuteSelection()<CR>
+    vnoremap <silent> <unique> <M-e> :call QshExecuteSelection()<CR>
+    vnoremap <silent> <unique> <F5> :call QshExecuteSelection()<CR>
+    inoremap <silent> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
+    inoremap <silent> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
+    inoremap <silent> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
+    nnoremap <silent> <unique> <Esc>e :call QshExecuteLine()<CR>
+    nnoremap <silent> <unique> <M-e> :call QshExecuteLine()<CR>
+    nnoremap <silent> <unique> <F5> :call QshExecuteLine()<CR>
 
-  " Alt+y
-  inoremap <silent> <buffer> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
-  inoremap <silent> <buffer> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>y :call QshExecuteAll()<CR>
-  nnoremap <silent> <buffer> <unique> <M-y> :call QshExecuteAll()<CR>
+    " Alt+y
+    inoremap <silent> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
+    inoremap <silent> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
+    nnoremap <silent> <unique> <Esc>y :call QshExecuteAll()<CR>
+    nnoremap <silent> <unique> <M-y> :call QshExecuteAll()<CR>
 
-  " Alt+g (for go)
-  inoremap <silent> <buffer> <unique> <Esc>g <C-O>:call QshExecute()<CR>
-  inoremap <silent> <buffer> <unique> <M-g> <C-O>:call QshExecute()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>g :call QshExecute()<CR>
-  nnoremap <silent> <buffer> <unique> <M-g> :call QshExecute()<CR>
+    " Alt+g (for go)
+    inoremap <silent> <unique> <Esc>g <C-O>:call QshExecute()<CR>
+    inoremap <silent> <unique> <M-g> <C-O>:call QshExecute()<CR>
+    nnoremap <silent> <unique> <Esc>g :call QshExecute()<CR>
+    nnoremap <silent> <unique> <M-g> :call QshExecute()<CR>
 
-  " Alt+G
-  inoremap <silent> <buffer> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
-  inoremap <silent> <buffer> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
-  nnoremap <silent> <buffer> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
+    " Alt+G
+    inoremap <silent> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
+    inoremap <silent> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
+    nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
+    nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
 
-  " Alt+d (for describe)
-  vnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
-  vnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
-  nnoremap <silent> <buffer> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
-  inoremap <silent> <buffer> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
-  inoremap <silent> <buffer> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
+    " Alt+d (for describe)
+    vnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
+    vnoremap <silent> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
+    nnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
+    nnoremap <silent> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
+    inoremap <silent> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
+    inoremap <silent> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
 
-  " Alt+r (for rows)
-  vnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
-  vnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
-  nnoremap <silent> <buffer> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
-  inoremap <silent> <buffer> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
-  inoremap <silent> <buffer> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
+    " Alt+r (for rows)
+    vnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
+    vnoremap <silent> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
+    nnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
+    nnoremap <silent> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
+    inoremap <silent> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
+    inoremap <silent> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
 
-  " Alt+t (for tidy)
-  vnoremap <silent> <buffer> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
-  vnoremap <silent> <buffer> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
+    " Alt+t (for tidy)
+    vnoremap <silent> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
+    vnoremap <silent> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
 
-  " Alt+v
-  vnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
-  vnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc>v :call QshExecuteScript()<CR>
-  nnoremap <silent> <buffer> <unique> <M-v> :call QshExecuteScript()<CR>
-  inoremap <silent> <buffer> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
-  inoremap <silent> <buffer> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
+    " Alt+v
+    vnoremap <silent> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
+    vnoremap <silent> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
+    nnoremap <silent> <unique> <Esc>v :call QshExecuteScript()<CR>
+    nnoremap <silent> <unique> <M-v> :call QshExecuteScript()<CR>
+    inoremap <silent> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
+    inoremap <silent> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
 
-  " Alt+Space
-  vnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
-  vnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
-  nnoremap <silent> <buffer> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
-  nnoremap <silent> <buffer> <unique> <M-Space> :call QshExecuteSnippet()<CR>
-  inoremap <silent> <buffer> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
-  inoremap <silent> <buffer> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+    " Alt+Space
+    vnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
+    vnoremap <silent> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
+    nnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
+    nnoremap <silent> <unique> <M-Space> :call QshExecuteSnippet()<CR>
+    inoremap <silent> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
+    inoremap <silent> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
+
+    let s:qsh_keys_mapped = 1
+  endif
 endfunction
+
+function QshEnable()
+  let s:qsh_enabled = 1
+  if g:qsh_enable_key_mappings == 1
+    call QshApplyDefaultKeyMappings()
+  endif
+endfunction
+
+command QshEnable :call QshEnable()
+
+function QshDisable()
+  let s:qsh_enabled = 0
+endfunction
+
+command QshDisable :call QshDisable()
 
 " By default, keys will be mapped
 if !exists("g:qsh_enable_key_mappings")
   let g:qsh_enable_key_mappings=1
 endif
 
-if g:qsh_enable_key_mappings == 1
-  call QshApplyDefaultKeyMappings()
+if s:qsh_enabled == 1
+  call QshEnable()
 endif
 
 function s:FindNonVisualLineRange(delimiter, includeDelimiter)
@@ -187,6 +216,10 @@ function s:VisuallySelectRange(rangeStart, rangeEnd)
 endfunction
 
 function QshExecute(delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   " Write to the requested file
   call writefile(s:FindNonVisualLines(a:delimiter, a:includeDelimiter), $QSH_EXECUTE_QUERY)
 
@@ -195,6 +228,10 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
 endfunction
 
 function QshExecuteSelection() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -205,7 +242,23 @@ function QshExecuteSelection() range
   call system($QSH)
 endfunction
 
+function QshExecuteLine()
+  if s:qsh_enabled != 1
+    return
+  endif
+
+  " Write to the requested file
+  call writefile([ getline(".") ], $QSH_EXECUTE_QUERY, "b")
+
+  echo "Qsh: Sending Query >>>"
+  call system($QSH)
+endfunction
+
 function QshExecuteAll()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   " Write to the requested file
   call writefile(getline(1, line('$')), $QSH_EXECUTE_QUERY)
 
@@ -213,55 +266,86 @@ function QshExecuteAll()
   call system($QSH)
 endfunction
 
+function s:ExecuteScript(script)
+  let message = "Qsh: " . a:script . " >>>"
+
+  let result = system("$QSH scripts " . shellescape(a:script))
+  if v:shell_error != 0
+    echo message .. " " .. result
+  else
+    echo message
+  endif
+endfunction
+
 function QshExecuteScript()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
   let script = join(s:FindTarget())
 
-  echo "Qsh: " . script . " >>>"
-  call system("$QSH scripts " . script)
+  " Execute the script
+  call s:ExecuteScript(script)
 endfunction
 
 function QshExecuteScriptVisually() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
   let script = join(s:FindVisualLines())
 
-  echo "Qsh: " . script . " >>>"
-  call system("$QSH scripts \"" . script . "\"")
+  " Execute the script
+  call s:ExecuteScript(script)
 endfunction
 
 function QshExecuteNamedScript(script)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
   call writefile(s:FindTarget(), $QSH_EXECUTE_QUERY)
 
-  "echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function QshExecuteNamedScriptVisually(script) range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
   " Write to the requested file
   call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY)
 
-  echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function QshExecuteNamedScriptNonVisually(script, delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Write to the requested file
   call writefile(s:FindNonVisualLines(a:delimiter, a:includeDelimiter), $QSH_EXECUTE_QUERY)
 
-  echo "Qsh: " . a:script . " >>>"
-  call system("$QSH scripts " . a:script)
+  " Execute the script
+  call s:ExecuteScript(a:script)
 endfunction
 
 function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
@@ -304,30 +388,36 @@ function s:ExecuteSnippet(snippet, rangeStart, rangeEnd)
 
     " Prepare the results
     let result = split(result, '\n')[:-1]
-    let result_column = len(result) == 1 ? len(lineStart) + len(result[0]) : len(result[-1])
+    if (len(result) > 0)
+      let result_column = len(result) == 1 ? len(lineStart) + len(result[0]) : len(result[-1])
 
-    let result[0] = lineStart . result[0]
-    let result[-1] = result[-1] . lineEnd
+      let result[0] = lineStart . result[0]
+      let result[-1] = result[-1] . lineEnd
 
-    exec 'normal "_d'
-    let result_length = len(result)
-    let i = 0
-    while i < result_length
-      if i == 0 || i + 1 == result_length
-        call setline(a:rangeStart[1] + i, result[i])
-      else
-        call append(a:rangeStart[1] + i - 1, result[i])
-      endif
+      exec 'normal "_d'
+      let result_length = len(result)
+      let i = 0
+      while i < result_length
+        if i == 0 || i + 1 == result_length
+          call setline(a:rangeStart[1] + i, result[i])
+        else
+          call append(a:rangeStart[1] + i - 1, result[i])
+        endif
 
-      let i += 1
-    endwhile
+        let i += 1
+      endwhile
 
-    " Position the cursor at the end of the snippet
-    call setpos(".", [ a:rangeStart[0], a:rangeStart[1] + len(result) - 1, result_column + 1, a:rangeStart[3] ])
+      " Position the cursor at the end of the snippet
+      call setpos(".", [ a:rangeStart[0], a:rangeStart[1] + len(result) - 1, result_column + 1, a:rangeStart[3] ])
+    endif
   endif
 endfunction
 
 function QshExecuteSnippet()
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Set range start/end to the current position
@@ -358,6 +448,10 @@ function QshExecuteSnippet()
 endfunction
 
 function QshExecuteSnippetVisually() range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -369,6 +463,10 @@ function QshExecuteSnippetVisually() range
 endfunction
 
 function QshExecuteNamedSnippet(snippet)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Find the target range
@@ -379,6 +477,10 @@ function QshExecuteNamedSnippet(snippet)
 endfunction
 
 function QshExecuteNamedSnippetVisually(snippet) range
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
   normal gv
 
@@ -390,6 +492,10 @@ function QshExecuteNamedSnippetVisually(snippet) range
 endfunction
 
 function QshExecuteNamedSnippetNonVisually(snippet, delimiter = ";", includeDelimiter = 1)
+  if s:qsh_enabled != 1
+    return
+  endif
+
   echo
 
   " Get the start and end of the range

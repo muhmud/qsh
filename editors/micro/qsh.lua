@@ -10,12 +10,20 @@ local QSH_EXECUTE_QUERY = os.getenv("QSH_EXECUTE_QUERY")
 local QSH_EXECUTE_QUERY_CURSOR = os.getenv("QSH_EXECUTE_QUERY_CURSOR")
 
 local QSH = os.getenv("QSH")
+local QSH_ENABLE = os.getenv("QSH_ENABLE")
+
+local qsh_enabled = 0
+if (QSH_ENABLE == "1") then
+  qsh_enabled = 1
+end
 
 ------------------------------------------------------------------------------------------------
 -- Plugin Hooks
 ------------------------------------------------------------------------------------------------
 
 function init()
+  config.MakeCommand("QshEnable", QshEnable, config.NoComplete)
+  config.MakeCommand("QshDisable", QshDisable, config.NoComplete)
   config.MakeCommand("QshExecute", QshExecute, config.NoComplete)
   config.MakeCommand("QshExecuteSelection", ExecuteSelection, config.NoComplete)
   config.MakeCommand("QshExecuteAll", ExecuteAll, config.NoComplete)
@@ -28,6 +36,14 @@ end
 ------------------------------------------------------------------------------------------------
 -- Command Adaptors (where required)
 ------------------------------------------------------------------------------------------------
+
+function QshEnable(bp)
+  qsh_enabled = 1
+end
+
+function QshDisable(bp)
+  qsh_enabled = 0
+end
 
 function QshExecute(bp, args)
   Execute(bp,
@@ -169,7 +185,7 @@ function FindSnippetTarget(bp)
 end
 
 function Execute(bp, delimiter, includeDelimiter)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
@@ -182,14 +198,22 @@ function Execute(bp, delimiter, includeDelimiter)
 end
 
 function ExecuteSelection(bp, delimiter, includeDelimiter)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
   local cursor = bp.Buf:GetActiveCursor()
-  if cursor and cursor:HasSelection() then
-    -- Write the output file
-    ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+  if cursor then
+    if cursor:HasSelection() then
+      -- Write the output file
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
+    else
+      -- Get the current line
+      local currentLine = util.String(bp.Buf:LineBytes(cursor.Loc.Y))
+
+      -- Write the output file
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, currentLine, 438)
+    end
 
     -- Call back into qsh
     micro.InfoBar():Message("Qsh: Sending Query >>>")
@@ -198,7 +222,7 @@ function ExecuteSelection(bp, delimiter, includeDelimiter)
 end
 
 function ExecuteAll(bp)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
@@ -211,7 +235,7 @@ function ExecuteAll(bp)
 end
 
 function ExecuteNamedScript(bp, script)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
@@ -219,24 +243,34 @@ function ExecuteNamedScript(bp, script)
   ioutil.WriteFile(QSH_EXECUTE_QUERY, FindScriptTarget(bp), 438)
 
   -- Call back into qsh
---  micro.InfoBar():Message("Qsh: " .. script .. " >>>")
-  shell.ExecCommand(QSH, "scripts", script);
+  local message = "Qsh: " .. script .. " >>>"
+  micro.InfoBar():Message(message)
+
+  local result, err = shell.ExecCommand(QSH, "scripts", script)
+  if err ~= nil then
+    micro.InfoBar():Error(message .. " " .. result)
+  end
 end
 
 function ExecuteScript(bp)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
   local script = string.gsub(util.String(FindScriptTarget(bp)), "\n", " ")
 
   -- Call back into qsh
-  micro.InfoBar():Message("Qsh: " .. script .. " >>>")
-  shell.ExecCommand(QSH, "scripts", script);
+  local message = "Qsh: " .. script .. " >>>"
+  micro.InfoBar():Message(message)
+
+  local result, err = shell.ExecCommand(QSH, "scripts", script)
+  if err ~= nil then
+    micro.InfoBar():Error(message .. " " .. result)
+  end
 end
 
 function ExecuteSnippet(bp)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
@@ -266,7 +300,7 @@ function ExecuteSnippet(bp)
 end
 
 function ExecuteNamedSnippet(bp, snippet, delimiter, includeDelimiter)
-  if bp.Buf:FileType() ~= "sql" then
+  if qsh_enabled ~= 1 then
     return
   end
 
@@ -285,7 +319,7 @@ function ExecuteNamedSnippet(bp, snippet, delimiter, includeDelimiter)
   ioutil.WriteFile(QSH_EXECUTE_QUERY_CURSOR, "{ " .. cursor.Loc.X .. ", " .. (cursor.Loc.Y - cursor.CurSelection[1].Y) .. " }", 438)
 
   -- Display a status message
-  local message = "Qsh: @" .. snippet .. " >>>"
+  local message = "Qsh: *" .. snippet .. " >>>"
 
   -- Call back into qsh
   local result, err = shell.ExecCommand(QSH, "snippets", snippet)

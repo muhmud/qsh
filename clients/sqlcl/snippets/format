@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QSH_BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../../../"
+QSH_SCRIPTS="$QSH_BASE/scripts"
+
+RESULT_REQUEST=$1
+
+RESULT_REQUEST_CONTEXT="${RESULT_REQUEST}.context";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+"$QSH_SCRIPTS/qsh-formatter.py" "$RESULT_REQUEST_CONTEXT" "$RESULT_REQUEST_OUTPUT";
+
+# We are done
+touch "$RESULT_REQUEST_FINALIZED";

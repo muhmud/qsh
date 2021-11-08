@@ -1,0 +1,15 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select m.name as table_name,
+         (case when m.type = 'table' then 'BASE TABLE' else 'VIEW' end) as table_type
+  from sqlite_master m
+  where type in ('table', 'view')
+	order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

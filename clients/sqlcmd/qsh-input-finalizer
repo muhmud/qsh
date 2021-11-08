@@ -1,0 +1,13 @@
+#!/bin/bash
+
+QSH_EXECUTE_QUERY=$1
+
+# Remove newlines & GO
+QSH_EXECUTE_QUERY_TMP=$(mktemp);
+cp "$QSH_EXECUTE_QUERY" $QSH_EXECUTE_QUERY_TMP;
+sed 's/^[Gg][Oo]$//g' "$QSH_EXECUTE_QUERY_TMP" | awk '{printf $0 " "}' > "$QSH_EXECUTE_QUERY";
+rm -f "$QSH_EXECUTE_QUERY_TMP";
+
+# Add a GO
+echo -ne "\nGO" >> "$QSH_EXECUTE_QUERY";
+

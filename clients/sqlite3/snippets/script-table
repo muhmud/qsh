@@ -1,0 +1,30 @@
+#!/bin/bash
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TABLE=$3
+
+RESULT_REQUEST_STAGE_ONE="${RESULT_REQUEST}.stage1";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+
+if [[ ! -f "$RESULT_REQUEST_STAGE_ONE" ]]; then
+  # Trim leading & trailing whitespace
+  TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+  cat <<EOF > $QUERY_FILE
+.schema $TABLE
+EOF
+
+  # Only output finalization
+  echo "$DIR/../qsh-output-finalizer" > "$RESULT_REQUEST";
+  
+  # Record that we have completed Stage 1
+  touch "$RESULT_REQUEST_STAGE_ONE";
+else
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+

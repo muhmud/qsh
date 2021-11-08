@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Environment details
+WINDOW_ID=$(tmux display-message -p '#I')
+PANE_ID=$(tmux display-message -p '#{pane_id}')
+QSH_TMP=/tmp/qsh
+
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
+if [[ -f "$QSH_BOOTSTRAP" ]]; then
+  source "$QSH_BOOTSTRAP";
+
+  QSH_ENV="$QSH_CLIENT/.qshenv";
+  [[ ! -f "$QSH_ENV" ]] && QSH_ENV="$QSH_CLIENT/../generic/.qshenv";
+  source "$QSH_ENV";
+
+  QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
+  eval "tmux send-keys $QSH_EDITOR_COMMAND" > /dev/null 2>&1;
+  tmux send-keys "C-m";
+fi;
+

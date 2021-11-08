@@ -1,0 +1,29 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1, 2"
+fi;
+
+cat <<EOF > $1
+select * from (
+  select object_schema_name(t.object_id) as TRIGGER_SCHEMA, t.name as TRIGGER_NAME,
+         (select (case when id != 1 then ', ' else '' end) + type_desc
+          from (
+            select object_id, type_desc, row_number() over (order by type_desc) as id
+            from sys.trigger_events
+            where object_id = t.object_id
+          ) u
+          order by id
+          for xml path('')) as event_manipulation,
+         object_schema_name(t.parent_id) as event_object_schema,
+         object_name(t.parent_id) as event_object_name
+  from sys.triggers t
+  where object_schema_name(t.object_id) not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+

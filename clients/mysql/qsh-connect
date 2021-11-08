@@ -3,21 +3,6 @@
 QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CLIENTS=$QSH_BASE/clients
 
-if [[ "$USING_PASSWORD" == "true" ]]; then
-  LOGIN_PATH=--defaults-file=$CLIENT_CONNECTION_FILE
-fi;
-
-if [[ "$VANILLA" != "true" ]]; then
-  export EDITOR=$QSH_SCRIPTS/qsh
-
-  QSH_PROMPT="\"--prompt=$(cat $QSH_CLIENTS/mysql/qsh-prompt)\"";
-  QSH_PAGER="--pager=$QSH_SCRIPTS/qsh-pager"
-fi;
-
-if [[ "$PROMPT" != "true" ]]; then
-  unset QSH_PROMPT;
-fi;
-
 if [[ -f "$CONNECTION_FILE" ]]; then
   eval "QSH_CONNECTION=\"$CONNECTION\" $CLIENT $LOGIN_PATH $INVOCATION $QSH_PAGER $QSH_PROMPT";
 else

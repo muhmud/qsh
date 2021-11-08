@@ -5,7 +5,10 @@ QSH_BASE="$QSH_SCRIPTS/.."
 
 # Store some basic information about our execution environment
 QSH=$BASH_SOURCE
-QSH_PAGER_COMMAND="$QSH_SCRIPTS/qsh-pager"
+QSH_PAGER_COMMAND=${QSH_PAGER_COMMAND:-$QSH_SCRIPTS/qsh-pager}
+
+# Other environment details
+WINDOW_ID=$(tmux display-message -p '#I')
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 PID=$$
 
@@ -18,6 +21,10 @@ QSH_TMP=/tmp/qsh
 CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
 EDITOR_PANE=$QSH_TMP/editor.${PANE_ID}
 
+# File(s) used to start the session
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
+QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
+
 # The query file that will be used to transport the single query batch to be executed to the
 # SQL client
 QSH_EXECUTE_QUERY=${QSH_EXECUTE_QUERY:-$QSH_TMP/execute.${PANE_ID}.sql}
@@ -28,28 +35,39 @@ QSH_EXECUTE_QUERY_CURSOR=${QSH_EXECUTE_QUERY_CURSOR:-$QSH_TMP/execute.${PANE_ID}
 # script parameter will be empty
 OUTPUT_FILE=$1
 
-# Query editor options & default values
-QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'\e\;'}
+# If there's no output file specified, we are probably doing an initialization, so make sure
+# not having the file set doesn't interfere with anything
+[[ -z "$OUTPUT_FILE" ]] && OUTPUT_FILE=/dev/null;
+
 QSH_SWITCH_ON_EXECUTE=${QSH_SWITCH_ON_EXECUTE:-0}
 QSH_EXECUTE_DELAY=${QSH_EXECUTE_DELAY:-0.1}
+QSH_FILE_TYPE=${QSH_FILE_TYPE:-sql}
 
 # The editor to use
 QSH_EDITOR=${QSH_EDITOR:-$VISUAL}
 
 # Other variable(s)
-QSH_INIT_FILE="init.sh"
+QSH_INIT_FILE="qsh-init-editor"
 
+# Figure out the client, if we don't already know it
+if [[ -z "$QSH_SQL_CLIENT" ]]; then
+  # Find the name of the SQL client using qsh
+  QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
+fi;
+ 
 # Guarantees that the output file will register as changed
 function touch_output {
-  case $OSTYPE in
-    linux*)
-      TS=$(date -d '+1 second' +"%Y%m%d%H%M.%S")
-      ;;
-    darwin*)
-      TS=$(date -v+1S +"%Y%m%d%H%M.%S")
-      ;;
-  esac
-  touch -m -t "$TS" $OUTPUT_FILE;
+  if [[ "$OUTPUT_FILE" != "/dev/null" ]]; then
+    case $OSTYPE in
+      linux*)
+        TS=$(date -d '+1 second' +"%Y%m%d%H%M.%S")
+        ;;
+      darwin*)
+        TS=$(date -v+1S +"%Y%m%d%H%M.%S")
+        ;;
+    esac
+    touch -m -t "$TS" $OUTPUT_FILE;
+  fi;
 }
 
 # If neither pane file exists, it must mean that this is the first time we are running in this
@@ -61,35 +79,54 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # Ensure we have an input file, even if one isn't setup
   if [[ -z "$EDITOR_FILE" ]]; then
-    EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.sql
+    EDITOR_FILE=$QSH_TMP/query.${PANE_ID//%/}.$QSH_FILE_TYPE
   fi;
 
-  # Find the name of the SQL client running qsh (for advanced functionality)
-  QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
+  # If we don't have a SQL client directory for the current client, use the generic client
+  if [[ ! -d "$QSH_BASE/clients/$QSH_SQL_CLIENT" ]]; then
+    QSH_SQL_CLIENT="generic"
+  fi;
 
   # If we are aware of the editor, look for an env file to use for initialization
   QSH_ENV="$QSH_BASE/clients/$QSH_SQL_CLIENT/.qshenv";
-  if [[ -f "$QSH_ENV" ]]; then
-    source "$QSH_ENV";
-  fi;
+  [[ ! -f "$QSH_ENV" ]] && QSH_ENV="$QSH_BASE/clients/generic/.qshenv";
+
+  # Setup environment
+  source "$QSH_ENV";
+
+  # Set defaults
+  QSH_EDITOR_COMMAND=${QSH_EDITOR_COMMAND:-'"\e\;"'}
+  QSH_NEWLINE_ON_COMMAND=${QSH_NEWLINE_ON_COMMAND:-1}
+
+  # Setup the session
+  cat <<EOF > "$QSH_SESSION"
+export QSH='$QSH' 
+export QSH_ENABLE=1 
+export QSH_CONNECTION='$QSH_CONNECTION' 
+export QSH_INVOCATION='$QSH_INVOCATION' 
+export QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' 
+export QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' 
+export QSH_PAGER='$QSH_PAGER' 
+export QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' 
+export QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' 
+export QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND' 
+export QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' 
+export QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' 
+export QSH_SQL_CLIENT='$QSH_SQL_CLIENT' 
+export QSH_SCRIPTS_PATH='$QSH_SCRIPTS_PATH' 
+export QSH_SNIPPETS_PATH='$QSH_SNIPPETS_PATH' 
+export EDITOR_PANE_ID=$(tmux display-message -p '#{pane_id}')
+
+"$QSH_EDITOR" "$EDITOR_FILE";
+
+rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" "$CLIENT_PANE" "$QSH_EXECUTE_QUERY";
+
+EOF
 
   # Create the editor pane, and pass all options and other values to it. Also ensure that if the
   # editor is closed, all pane files are cleaned up. This allows for the editor to be re-opened
   # again in the same tmux window without issue, and reduces the proliferation of tmp files
-  EDITOR_PANE_ID=$(tmux split-window "export QSH='$QSH' \
-                                             QSH_CONNECTION='$QSH_CONNECTION' \
-                                             QSH_INVOCATION='$QSH_INVOCATION' \
-                                             QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' \
-                                             QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' \
-                                             QSH_PAGER='$QSH_PAGER' \
-                                             QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' \
-                                             QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' \
-                                             QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' \
-                                             QSH_SQL_CLIENT='$QSH_SQL_CLIENT' \
-                                             PANE_ID=$(tmux display-message -p '#{pane_id}');
-                                      $QSH_EDITOR $EDITOR_FILE; \
-                                      rm -f $QSH_TMP/editor.$PANE_ID; \
-                                      rm -f $CLIENT_PANE;" \; \
+  EDITOR_PANE_ID=$(tmux split-window "source \"$QSH_SESSION\"" \; \
                    swap-pane -U \; \
                    display-message -p '#{pane_id}');
 
@@ -102,22 +139,17 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
   # If there is a SQL client specific initialization script, use that, otherwise use the generic
   # version, which should be fine for most database platforms
   QSH_INIT="$QSH_BASE/clients/$QSH_SQL_CLIENT/$QSH_INIT_FILE";
-  if [[ ! -f "$QSH_INIT" ]]; then
-    QSH_INIT="$QSH_BASE/clients/$QSH_INIT_FILE"
-  fi;
+  [[ ! -f "$QSH_INIT" ]] && QSH_INIT="$QSH_BASE/clients/generic/$QSH_INIT_FILE";
 
-  # If we don't have a SQL client directory for the current client, things might work, might not,
-  # and we definitely won't have access to any scripts, etc.
-  if [[ ! -d "$QSH_BASE/clients/$QSH_SQL_CLIENT" ]]; then
-    QSH_SQL_CLIENT="??"
-  fi;
- 
   # Initialize qsh and put up a nice message to let the user know we're good to go
   "$QSH_INIT" "$PANE_ID" "$QSH_SQL_CLIENT" "$QSH_PAGER_COMMAND" "$QSH_NO_CHANGE_PROMPT" \
     "$QSH_PROMPT" "$OUTPUT_FILE";
 
   # Ensure the modified datetime of the output file looks legit
   touch_output;
+
+  # Remove bootstrap file, if it exists
+  rm -f "$QSH_BOOTSTRAP";
 
   exit 0;
 fi;
@@ -198,12 +230,20 @@ if [[ -f "$EDITOR_PANE" ]]; then
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | awk -F " " '{ print $1; }');
       SCRIPT_PARAMETERS=$(echo "$2" | awk -F " " '{ $1=""; print $0; }');
+      SCRIPT_TYPE=script
+
+      # Set the search path
+      QSH_SEARCH_PATH=$QSH_SCRIPTS_PATH;
       ;;
 
     $OPERATION_TYPE_SNIPPET)
       # Figure out the script to be called and it's parameters
       QUERY_SCRIPT=$(echo "$2" | sed 's/\([^( ]\+\)[[:space:]]*(\(.*\))/\1/g');
       SCRIPT_PARAMETERS=$(echo "$2" | sed 's/[^( ]\+[[:space:]]*(\(.*\))/\1/g');
+      SCRIPT_TYPE=snippet
+
+      # Set the search path
+      QSH_SEARCH_PATH=$QSH_SNIPPETS_PATH;
 
       # Copy in other files if they exist
       [[ -f "$QSH_EXECUTE_QUERY" ]] && cp "$QSH_EXECUTE_QUERY" "$RESULT_REQUEST_CONTEXT";
@@ -214,10 +254,20 @@ if [[ -f "$EDITOR_PANE" ]]; then
   # If we are running a script or a snippet, make sure the requested script exists
   if [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SCRIPT" ] || \
      [ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]; then
-    # Locate the client query script to call
-    QSH_QUERY_SCRIPT=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE/$QUERY_SCRIPT;
-    if [[ ! -f "$QSH_QUERY_SCRIPT" ]]; then
-      echo "Invalid script '$QUERY_SCRIPT'";
+    # Locate the client query script/snippet to call
+    if [[ -z "$QSH_SEARCH_PATH" ]]; then
+      QSH_SEARCH_PATH=$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE;
+    else
+      QSH_SEARCH_PATH=$QSH_SEARCH_PATH:$QSH_BASE/clients/$QSH_SQL_CLIENT/$OPERATION_TYPE;
+    fi;
+
+    # Remember where which is, as the path is about to be changed for the next command
+    WHICH=$(which which);
+
+    # Search for the script
+    QSH_QUERY_SCRIPT="$(PATH="$QSH_SEARCH_PATH" "$WHICH" "$QUERY_SCRIPT" 2>&1)";
+    if [[ $? -ne 0 ]]; then
+      echo "Invalid $SCRIPT_TYPE \"$QUERY_SCRIPT\"";
       exit -1;
     fi;
   fi;
@@ -282,8 +332,12 @@ if [[ -f "$EDITOR_PANE" ]]; then
 
     # Finally, trigger the editor in the SQL client, which will cause it to re-enter this script. We
     # need that to happen so that it can pick up the query file and execute it
-    tmux send-keys -t $CLIENT_PANE_ID "$QSH_EDITOR_COMMAND";
-    tmux send-keys -t $CLIENT_PANE_ID "C-m";
+    eval "tmux send-keys -t $CLIENT_PANE_ID $QSH_EDITOR_COMMAND";
+
+    # Add a newline, if we have to
+    if [[ $QSH_NEWLINE_ON_COMMAND -eq 1 ]]; then
+      tmux send-keys -t $CLIENT_PANE_ID "C-m";
+    fi;
 
     # For snippets, we will have to wait until the operation is complete, and potentially loop again
     if [[ "$OPERATION_TYPE" == "$OPERATION_TYPE_SNIPPET" ]]; then
@@ -311,10 +365,20 @@ fi;
 # copy the contents of the SQL file to the location requested by the SQL client, i.e. $OUTPUT_FILE,
 # which will then pick it up and execute it. A copy is used instead of move to not invalidate open
 # file handles
-cat "$QSH_EXECUTE_QUERY" > "$OUTPUT_FILE";
+if [[ -f "$QSH_EXECUTE_QUERY" ]]; then
+  # If there is a finalizer for the current client, use it
+  QSH_INPUT_FINALIZER=$QSH_BASE/clients/$QSH_SQL_CLIENT/qsh-input-finalizer
+  if [[ -f "$QSH_INPUT_FINALIZER" ]]; then
+    "$QSH_INPUT_FINALIZER" "$QSH_EXECUTE_QUERY";
+  fi;
+
+  # Send the query to it's final destination
+  cat "$QSH_EXECUTE_QUERY" > "$OUTPUT_FILE";
+fi;
 
 # Remove qsh files
 rm -f "$QSH_EXECUTE_QUERY" "$QSH_EXECUTE_QUERY_CURSOR";
 
 # Ensure the modified datetime of the output file looks legit
 touch_output;
+

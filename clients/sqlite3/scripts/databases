@@ -1,0 +1,13 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select name as catalog_name
+  from pragma_database_list
+	order by 1
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

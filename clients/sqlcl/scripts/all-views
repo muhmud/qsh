@@ -1,0 +1,16 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select * from (
+  select user as TABLE_SCHEMA, TABLE_NAME,
+         (case when TABLE_TYPE = 'TABLE' then 'BASE TABLE' else 'VIEW' end) as TABLE_TYPE,
+         COMMENTS as TABLE_COMMENT
+  from ALL_TAB_COMMENTS
+  where TABLE_TYPE = 'VIEW'
+  order by 1, 2
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+QSH_CLIENTS=$QSH_BASE/clients
+
+source $QSH_CLIENTS/generic/qsh-connect;
+

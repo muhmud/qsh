@@ -1,0 +1,19 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+cat <<EOF > $1
+select *
+from (
+  select i.TABLE_OWNER as TABLE_SCHEMA, i.TABLE_NAME, i.INDEX_NAME, 
+         (case when i.UNIQUENESS = 'UNIQUE' then 'true' else 'false' end) as IS_UNIQUE,
+         i.INDEX_TYPE,
+         listagg(ic.COLUMN_NAME, ', ') within group(order by COLUMN_POSITION) as INDEX_COLUMNS
+  from ALL_INDEXES i
+  inner join ALL_IND_COLUMNS ic on i.OWNER = ic.INDEX_OWNER and i.INDEX_NAME = ic.INDEX_NAME
+  group by i.TABLE_OWNER, i.TABLE_NAME, i.INDEX_NAME, i.UNIQUENESS, i.INDEX_TYPE
+  order by 1, 2, 3
+) t
+$QUERY_CUSTOMIZATION;
+EOF
+

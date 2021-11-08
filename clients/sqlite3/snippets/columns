@@ -1,0 +1,25 @@
+#!/bin/bash
+
+RESULT_REQUEST=$1
+QUERY_FILE=$2
+TABLE=$3
+
+RESULT_REQUEST_FINALIZED="${RESULT_REQUEST}.finalized";
+RESULT_REQUEST_OUTPUT="${RESULT_REQUEST}.output";
+
+if [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
+  # Trim leading & trailing whitespace
+  TABLE="$(echo "$TABLE" | sed 's/^[[:space:]]\+//g; s/[[:space:]]\+$//g')";
+
+  cat <<EOF > $QUERY_FILE
+select group_concat(c.name, ', ') as columns
+from sqlite_master m
+inner join pragma_table_info(m.name) c
+where tbl_name = '$TABLE'
+order by group_concat(c.cid);
+EOF
+else
+  # We are done
+  touch "$RESULT_REQUEST_FINALIZED";  
+fi;
+

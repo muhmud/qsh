@@ -1,0 +1,24 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1"
+fi;
+
+cat <<EOF > $1
+select * from (
+  select spid as process_id, db_name(dbid) as database_name, loginame as user_name, 
+         (select client_net_address
+          from sys.dm_exec_connections
+          where session_id = t.spid) as user_address,
+         program_name as application_name, login_time as session_start_timestamp,
+         status as state, cmd as wait_type, lastwaittype as wait_event, 
+         blocked
+  from master.dbo.sysprocesses t
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+

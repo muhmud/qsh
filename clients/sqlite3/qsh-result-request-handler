@@ -1,0 +1,20 @@
+#!/bin/bash
+
+QSH_SQLITE3="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+RESULT_REQUEST=$1
+QSH_EXECUTE_QUERY=$2
+
+RESULT_REQUEST_QUERY="${RESULT_REQUEST}.sql";
+RESULT_REQUEST_COMPLETE="${RESULT_REQUEST}.complete";
+
+if [[ -f "$RESULT_REQUEST" ]]; then
+  RESULT_REQUEST_CLEANUP="$(cat "$RESULT_REQUEST")";
+fi;
+
+if [[ -z "$RESULT_REQUEST_CLEANUP" ]]; then
+  echo "$QSH_SQLITE3/qsh-result-request-cleanup" > "$RESULT_REQUEST";
+fi;
+
+cat "$RESULT_REQUEST_QUERY" > "$QSH_EXECUTE_QUERY";
+

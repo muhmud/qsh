@@ -1,0 +1,6 @@
+#!/bin/bash
+
+LINE_COUNT=$1
+
+tail -n +$((LINE_COUNT + 1));
+

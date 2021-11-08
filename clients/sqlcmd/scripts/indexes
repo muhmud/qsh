@@ -1,0 +1,29 @@
+#!/bin/bash
+
+QUERY_CUSTOMIZATION=$2
+
+CUSTOMIZED_ORDER_BY=$(echo "$QUERY_CUSTOMIZATION" | grep -q "order by");
+if [[ $? -ne 0 ]]; then
+  ORDER_BY="order by 1, 2, 3"
+fi;
+
+cat <<EOF > $1
+select * from (
+  select object_schema_name(object_id) as table_schema,
+         object_name(object_id) as table_name,
+         name as index_name,
+         is_unique,
+         (select (case when index_column_id != 1 then ', ' else '' end) + c.name
+          from sys.index_columns ic
+          inner join sys.columns c on ic.object_id = c.object_id and ic.column_id = c.column_id
+          where ic.object_id = i.object_id and ic.index_id = i.index_id
+          order by index_column_id
+          for xml path('')) as index_columns
+  from sys.indexes i
+  where object_schema_name(object_id) not in ('INFORMATION_SCHEMA', 'sys', 'guest')
+  and name is not null
+) t
+$QUERY_CUSTOMIZATION
+$ORDER_BY;
+EOF
+
