@@ -363,6 +363,7 @@ The following environment variables can be changed if required:
 * `QSH_PAGER` - The pager you will be using, which by default will try `pspg`, `less`, and `cat` in that order.
 * `QSH_SCRIPTS_PATH` - Additional directories, separated by `:`, to search for scripts in
 * `QSH_SNIPPETS_PATH` - Additional directories, separated by `:`, to search for snippets in
+* `QSH_STARTUP_MODE` - If set to `1`, will make the `-s` option the default, and always startup the editor automatically
 
 ## Using SSH
 
