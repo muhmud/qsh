@@ -184,7 +184,7 @@ If your terminal looks messed up when the tool starts, try to use the REPL mode 
 $ qsh -r redis-cli
 ```
 
-You can also use the `-f` option to change the extension of the file opened up in the editor. This can be useful to enable language/domain specific features for the tool you are using. Setting this value to something that isn't `sql`, implicitly enables REPL mode:
+You can also use the `-f` option to change the extension of the file opened up in the editor. This can be useful to enable language/domain specific features for the tool you are using. Setting this value to something that isn't `sql` implicitly enables REPL mode:
 
 ```
 $ qsh -f js node
