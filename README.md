@@ -4,7 +4,7 @@ Query SHell - improved querying from your terminal
 ![QSH](images/qsh.png)
 
 Currently supports:
-* `sqlite3`
+* `sqlite3` (3.31+)
 * `mysql`
 * `psql`
 * `sqlcmd` (for `mssql`)
