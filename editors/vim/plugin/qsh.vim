@@ -16,6 +16,9 @@ let g:loaded_qsh = 1
 let s:qsh_enabled = $QSH_ENABLE == 1 ? 1 : 0
 let s:qsh_keys_mapped = 0
 
+" Buffer variable(s)
+let b:command_prefix= ""
+
 function QshApplyDefaultKeyMappings()
   if s:qsh_keys_mapped == 0
     " Alt+e (for execute)
@@ -46,6 +49,14 @@ function QshApplyDefaultKeyMappings()
     inoremap <silent> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
     nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
     nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
+
+    " Alt+p
+    vnoremap <silent> <unique> <Esc>p :call QshSetPrefix()<CR>
+    vnoremap <silent> <unique> <M-p> :call QshSetPrefix()<CR>
+    nnoremap <silent> <unique> <Esc>p :call QshUnsetPrefix()<CR>
+    nnoremap <silent> <unique> <M-p> :call QshUnsetPrefix()<CR>
+    inoremap <silent> <unique> <Esc>p <C-O>:call QshUnsetPrefix()<CR>
+    inoremap <silent> <unique> <M-p> <C-O>:call QshUnsetPrefix()<CR>
 
     " Alt+d (for describe)
     vnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
@@ -215,9 +226,36 @@ function s:VisuallySelectRange(rangeStart, rangeEnd)
   call setpos(".", a:rangeEnd)
 endfunction
 
+function QshSetPrefix()
+  if s:qsh_enabled != 1
+    return
+  endif
+
+  echo
+  normal gv
+
+  let b:command_prefix = join(s:FindVisualLines())
+  echo "Qsh: Prefix Set - " .. b:command_prefix
+endfunction
+
+function QshUnsetPrefix()
+  if s:qsh_enabled != 1
+    return
+  endif
+
+  let b:command_prefix = ""
+  echo "Qsh: Prefix Unset"
+endfunction
+
 function QshExecute(delimiter = ";", includeDelimiter = 1)
   if s:qsh_enabled != 1
     return
+  endif
+
+  " Add prefix if it's been set
+  let lines = s:FindNonVisualLines(a:delimiter, a:includeDelimiter)
+  if b:command_prefix != ""
+    let lines[0] = b:command_prefix .. " " .. lines[0]
   endif
 
   " Write to the requested file
@@ -235,6 +273,12 @@ function QshExecuteSelection() range
   echo
   normal gv
 
+  " Add prefix if it's been set
+  let lines = s:FindVisualLines()
+  if b:command_prefix != ""
+    let lines[0] = b:command_prefix .. " " .. lines[0]
+  endif
+
   " Write to the requested file
   call writefile(s:FindVisualLines(), $QSH_EXECUTE_QUERY, "b")
 
@@ -247,8 +291,14 @@ function QshExecuteLine()
     return
   endif
 
+  " Add prefix if it's been set
+  let line = getline(".")
+  if b:command_prefix != ""
+    let line = b:command_prefix .. " " .. line
+  endif
+
   " Write to the requested file
-  call writefile([ getline(".") ], $QSH_EXECUTE_QUERY, "b")
+  call writefile([ line ], $QSH_EXECUTE_QUERY, "b")
 
   echo "Qsh: Sending Query >>>"
   call system($QSH)

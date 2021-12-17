@@ -17,6 +17,7 @@ if (QSH_ENABLE == "1") then
   qsh_enabled = 1
 end
 
+local command_prefix = ""
 ------------------------------------------------------------------------------------------------
 -- Plugin Hooks
 ------------------------------------------------------------------------------------------------
@@ -31,6 +32,7 @@ function init()
   config.MakeCommand("QshExecuteNamedScript", QshExecuteNamedScript, config.NoComplete)
   config.MakeCommand("QshExecuteSnippet", ExecuteSnippet, config.NoComplete)
   config.MakeCommand("QshExecuteNamedSnippet", QshExecuteNamedSnippet, config.NoComplete)
+  config.MakeCommand("QshSetUnsetPrefix", SetUnsetPrefix, config.NoComplete)
 end
 
 ------------------------------------------------------------------------------------------------
@@ -184,13 +186,34 @@ function FindSnippetTarget(bp)
   return cursor:GetSelection()
 end
 
+function SetUnsetPrefix(bp)
+  if qsh_enabled ~= 1 then
+    return
+  end
+
+  local cursor = bp.Buf:GetActiveCursor()
+  if cursor and cursor:HasSelection() then
+    command_prefix = util.String(cursor:GetSelection())
+    micro.InfoBar():Message("Qsh: Prefix Set - " .. command_prefix)
+  else
+    command_prefix = ""
+    micro.InfoBar():Message("Qsh: Prefix Unset")
+  end
+end
+
 function Execute(bp, delimiter, includeDelimiter)
   if qsh_enabled ~= 1 then
     return
   end
 
+  -- Add prefix if it's been set
+  local target = FindDelimitedTarget(bp, delimiter, includeDelimiter)
+  if command_prefix ~= "" then
+    target[0] = command_prefix .. " " .. target[0]
+  end
+
   -- Write the output file
-  ioutil.WriteFile(QSH_EXECUTE_QUERY, FindDelimitedTarget(bp, delimiter, includeDelimiter), 438)
+  ioutil.WriteFile(QSH_EXECUTE_QUERY, target, 438)
 
   -- Call back into qsh
   micro.InfoBar():Message("Qsh: Sending Query >>>")
@@ -205,14 +228,23 @@ function ExecuteSelection(bp, delimiter, includeDelimiter)
   local cursor = bp.Buf:GetActiveCursor()
   if cursor then
     if cursor:HasSelection() then
-      -- Write the output file
-      ioutil.WriteFile(QSH_EXECUTE_QUERY, cursor:GetSelection(), 438)
-    else
-      -- Get the current line
-      local currentLine = util.String(bp.Buf:LineBytes(cursor.Loc.Y))
+      -- Add prefix if it's been set
+      local target = cursor:GetSelection()
+      if command_prefix ~= "" then
+        target[0] = command_prefix .. " " .. target[0]
+      end
 
       -- Write the output file
-      ioutil.WriteFile(QSH_EXECUTE_QUERY, currentLine, 438)
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, target, 438)
+    else
+      -- Add prefix if it's been set
+      local target = util.String(bp.Buf:LineBytes(cursor.Loc.Y))
+      if command_prefix ~= "" then
+        target = command_prefix .. " " .. target
+      end
+
+      -- Write the output file
+      ioutil.WriteFile(QSH_EXECUTE_QUERY, target, 438)
     end
 
     -- Call back into qsh
