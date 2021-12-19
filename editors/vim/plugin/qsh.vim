@@ -50,7 +50,7 @@ function QshApplyDefaultKeyMappings()
     nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
     nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
 
-    " Alt+p
+    " Alt+p (for prefix)
     vnoremap <silent> <unique> <Esc>p :call QshSetPrefix()<CR>
     vnoremap <silent> <unique> <M-p> :call QshSetPrefix()<CR>
     nnoremap <silent> <unique> <Esc>p :call QshUnsetPrefix()<CR>
