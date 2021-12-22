@@ -90,6 +90,14 @@ inoremap <silent> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
 nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
 nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
 
+" Alt+p (for prefix)
+vnoremap <silent> <unique> <Esc>p :call QshSetPrefix()<CR>
+vnoremap <silent> <unique> <M-p> :call QshSetPrefix()<CR>
+nnoremap <silent> <unique> <Esc>p :call QshUnsetPrefix()<CR>
+nnoremap <silent> <unique> <M-p> :call QshUnsetPrefix()<CR>
+inoremap <silent> <unique> <Esc>p <C-O>:call QshUnsetPrefix()<CR>
+inoremap <silent> <unique> <M-p> <C-O>:call QshUnsetPrefix()<CR>
+
 " Alt+d (for describe)
 vnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
 vnoremap <silent> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
@@ -157,7 +165,8 @@ The following key mappings, or similar, can be added to `~/.config/micro/binding
 "Alt-r": "command:QshExecuteNamedScript 'select-some'",
 "Alt-v": "command:QshExecuteScript",
 "Alt-i": "command:QshExecuteSnippet",
-"Alt-t": "command:QshExecuteNamedSnippet 'format'"
+"Alt-t": "command:QshExecuteNamedSnippet 'format'",
+"Alt-p": "command:QshSetUnsetPrefix"
 ```
 
 ## Usage
@@ -215,6 +224,10 @@ Now this invocation of qsh can be started like this:
 ```
 $ qsh zsh
 ```
+
+#### Prefix
+
+You can set `qsh` to prefix every command you want to execute with a particular string, which can be sometimes be useful in generic mode, for example, `git` or `kubectl`. This way you don't need to repeat this text for every command you want to run.
 
 ### Executing Queries
 
