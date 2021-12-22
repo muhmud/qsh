@@ -17,7 +17,7 @@ There is also a generic mode, which can potentially be used with other tools not
 
 You'll need to install & use [tmux](https://github.com/tmux/tmux), which is needed to manage the split panes. It should be available from your package manager. Installing [jq](https://github.com/stedolan/jq) and `tree` would also be a good idea. For the generic mode, you will need `rlwrap` and `perl`.
 
-For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended (ensure you have the latest version), however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager.
+For better viewing of SQL results, the [pspg](https://github.com/okbob/pspg) pager is recommended (ensure you have the latest version), however, you could also use `less -SinFX`. When displaying results, qsh will try to make a sensible choice, however, you can instead explicitly choose a pager. For generic mode, `bat` can also work well.
 
 To format SQL statements, you will need python 3 and [sqlparse](https://github.com/andialbrecht/sqlparse).
 
@@ -227,7 +227,7 @@ $ qsh zsh
 
 #### Prefix
 
-You can set `qsh` to prefix every command you want to execute with a particular string, which can be sometimes be useful in generic mode, for example, `git` or `kubectl`. This way you don't need to repeat this text for every command you want to run.
+You can set `qsh` to add a prefix to every command you want to execute, which can be sometimes be useful in generic mode, for example, when running `git` or `kubectl` commands. This way you don't need to repeat this command every time.
 
 ### Executing Queries
 
