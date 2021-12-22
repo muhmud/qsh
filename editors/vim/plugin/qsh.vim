@@ -17,7 +17,7 @@ let s:qsh_enabled = $QSH_ENABLE == 1 ? 1 : 0
 let s:qsh_keys_mapped = 0
 
 " Buffer variable(s)
-let b:command_prefix= ""
+let b:command_prefix = ""
 
 function QshApplyDefaultKeyMappings()
   if s:qsh_keys_mapped == 0
@@ -254,7 +254,7 @@ function QshExecute(delimiter = ";", includeDelimiter = 1)
 
   " Add prefix if it's been set
   let lines = s:FindNonVisualLines(a:delimiter, a:includeDelimiter)
-  if b:command_prefix != ""
+  if exists("b:command_prefix") && b:command_prefix != ""
     let lines[0] = b:command_prefix .. " " .. lines[0]
   endif
 
@@ -275,7 +275,7 @@ function QshExecuteSelection() range
 
   " Add prefix if it's been set
   let lines = s:FindVisualLines()
-  if b:command_prefix != ""
+  if exists("b:command_prefix") && b:command_prefix != ""
     let lines[0] = b:command_prefix .. " " .. lines[0]
   endif
 
@@ -293,7 +293,7 @@ function QshExecuteLine()
 
   " Add prefix if it's been set
   let line = getline(".")
-  if b:command_prefix != ""
+  if exists("b:command_prefix") && b:command_prefix != ""
     let line = b:command_prefix .. " " .. line
   endif
 
