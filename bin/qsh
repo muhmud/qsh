@@ -229,7 +229,7 @@ if [[ "$QSH_ENV" != "null" ]]; then
     ENV_VARIABLE="$(echo "$QSH_ENV_KEYS" | jq -r ".[$ENV_INDEX]")";
     if [[ "$ENV_VARIABLE" != "null" ]]; then
       ENV_VALUE="$(echo "$QSH_ENV" | jq -r ".$ENV_VARIABLE")";
-      export $ENV_VARIABLE=$ENV_VALUE;
+      export $ENV_VARIABLE="$ENV_VALUE";
 
       ENV_INDEX=$((ENV_INDEX + 1));
     else

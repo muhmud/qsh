@@ -12,8 +12,11 @@ if [[ "$VANILLA" != "true" ]]; then
   export RLWRAP_EDITOR=$QSH_SCRIPTS/qsh
 
   if [[ -z "$QSH_PAGER" ]]; then
-    if [[ ! -z "$REPL_MODE" ]]; then
-      export QSH_PAGER=cat
+    if [[ "$REPL_MODE" -eq 1 ]]; then
+      export QSH_PAGER=cat;
+
+      # Use this finalizer only for repl mode
+      export QSH_OUTPUT_FINALIZER=$QSH_CLIENTS/generic/qsh-output-finalizer;
     fi;
   fi;
 fi;
