@@ -177,7 +177,7 @@ From within a `tmux` session, prefix the invocation of your SQL client with `qsh
 $ qsh psql
 ```
 
-This will setup your SQL client environment appropriately for `qsh`. Now, trigger the editor using the command for your environment. For `mysql`, this would be `\e;`, and for `psql`, `\e` or if you setup a keyboard shortcut in your tmux config, as described above, you could use that also. Alternatively, use the `-s` option to startup the editor automatically.
+This will setup your SQL client environment appropriately. Now, trigger the editor using the command for your environment. For `mysql`, this would be `\e;`, and for `psql`, `\e` or if you setup a keyboard shortcut in your tmux config, as described above, you could use that also. Alternatively, use the `-s` option to startup the editor automatically.
 
 You should see the editor pane created, where you can now type in queries. A default SQL file is created for you, however, you could open up any other file you need to.
 
@@ -238,7 +238,7 @@ You can set `qsh` to add a prefix to every command you want to execute, which ca
 
 For `Alt-g`, `qsh` will look for a statement delimited on either side by a semi-colon. This makes it easier to execute a large SQL statement without needing to highlight it every time.
 
-Alternatively, using `Alt-G` does the same thing but changes the delimiter to be the string `---`, which must be the only thing on a line. You can change this to what you like, this is simply the default as defined in the key mapping.
+Alternatively, using `Alt-G` does the same thing but changes the delimiter to be the string `---`, which must be the only thing on a line. You can change this to whatever you like, this is simply the default as defined in the key mapping.
 
 The following provides an example:
 
