@@ -11,9 +11,6 @@ WINDOW_ID=$(tmux display-message -p '#I')
 PANE_ID=$(tmux display-message -p '#{pane_id}')
 QSH_TTY=$(tty)
 
-# Bootstrap
-QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
-
 # Other files
 QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
 CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
@@ -37,7 +34,7 @@ if [[ -f "$CLIENT_PANE" ]]; then
   fi;
 
   if [[ -z "$EXISTING_QSH_SESSION" ]]; then
-    rm -f "$QSH_BOOTSTRAP" "$QSH_SESSION" "$CLIENT_PANE" "$EDITOR_PANE";
+    $QSH_SCRIPTS/qsh-bootstrap destroy "$PANE_ID" "$WINDOW_ID";
   fi;
 fi;
 
@@ -137,9 +134,7 @@ function client_connect {
       $QSH_SCRIPTS/qsh;
   else
     # Setup a bootstrap
-    cat <<EOF > "$QSH_BOOTSTRAP"
-export QSH_CLIENT=$QSH_CLIENTS/$CLIENT_NAME 
-EOF
+    $QSH_SCRIPTS/qsh-bootstrap create "$PANE_ID" "$WINDOW_ID" "$CLIENT_NAME";
   fi;
 
   if [[ "$INVOKE" == "0" ]]; then
@@ -239,4 +234,7 @@ if [[ "$QSH_ENV" != "null" ]]; then
 fi;
 
 client_connect "$CLIENT";
+
+# Remove bootstrap file
+$QSH_SCRIPTS/qsh-bootstrap remove "$PANE_ID" "$WINDOW_ID" "$CLIENT_NAME";
 
