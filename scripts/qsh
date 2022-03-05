@@ -54,7 +54,7 @@ if [[ -z "$QSH_SQL_CLIENT" ]]; then
   # Find the name of the SQL client using qsh
   QSH_SQL_CLIENT=$(echo $(basename $(ps -q $(ps -q $PID -o ppid=) -o comm= | awk '{ print $1 }')));
 fi;
- 
+
 # Guarantees that the output file will register as changed
 function touch_output {
   if [[ "$OUTPUT_FILE" != "/dev/null" ]]; then
@@ -100,26 +100,28 @@ if [ ! -f "$CLIENT_PANE" ] && [ ! -f "$EDITOR_PANE" ]; then
 
   # Setup the session
   cat <<EOF > "$QSH_SESSION"
-export QSH='$QSH' 
-export QSH_ENABLE=1 
-export QSH_CONNECTION='$QSH_CONNECTION' 
-export QSH_INVOCATION='$QSH_INVOCATION' 
-export QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY' 
-export QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR' 
-export QSH_PAGER='$QSH_PAGER' 
-export QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND' 
-export QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND' 
-export QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND' 
-export QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE' 
-export QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY' 
-export QSH_SQL_CLIENT='$QSH_SQL_CLIENT' 
-export QSH_SCRIPTS_PATH='$QSH_SCRIPTS_PATH' 
-export QSH_SNIPPETS_PATH='$QSH_SNIPPETS_PATH' 
+export QSH='$QSH'
+export QSH_ENABLE=1
+export QSH_CONNECTION='$QSH_CONNECTION'
+export QSH_INVOCATION='$QSH_INVOCATION'
+export QSH_EXECUTE_QUERY='$QSH_EXECUTE_QUERY'
+export QSH_EXECUTE_QUERY_CURSOR='$QSH_EXECUTE_QUERY_CURSOR'
+export QSH_PAGER='$QSH_PAGER'
+export QSH_PAGER_COMMAND='$QSH_PAGER_COMMAND'
+export QSH_EDITOR_COMMAND='$QSH_EDITOR_COMMAND'
+export QSH_NEWLINE_ON_COMMAND='$QSH_NEWLINE_ON_COMMAND'
+export QSH_SWITCH_ON_EXECUTE='$QSH_SWITCH_ON_EXECUTE'
+export QSH_EXECUTE_DELAY='$QSH_EXECUTE_DELAY'
+export QSH_SQL_CLIENT='$QSH_SQL_CLIENT'
+export QSH_SCRIPTS_PATH='$QSH_SCRIPTS_PATH'
+export QSH_SNIPPETS_PATH='$QSH_SNIPPETS_PATH'
+export EDITOR_WINDOW_ID=$(tmux display-message -p '#I')
 export EDITOR_PANE_ID=$(tmux display-message -p '#{pane_id}')
 
 "$QSH_EDITOR" "$EDITOR_FILE";
 
 rm -f "$QSH_TMP/editor.\$EDITOR_PANE_ID" "$CLIENT_PANE" "$QSH_EXECUTE_QUERY";
+$QSH_SCRIPTS/qsh-bootstrap create "\$EDITOR_PANE_ID" "\$EDITOR_WINDOW_ID" "$QSH_SQL_CLIENT";
 
 EOF
 
@@ -302,7 +304,7 @@ if [[ -f "$EDITOR_PANE" ]]; then
         touch "$RESULT_REQUEST";
         rm -f "$RESULT_REQUEST_QUERY" "$RESULT_REQUEST_COMPLETE";
 
-        # For snippets, execute the requested script file, providing access to the result request 
+        # For snippets, execute the requested script file, providing access to the result request
         "$QSH_QUERY_SCRIPT" "$RESULT_REQUEST" "$RESULT_REQUEST_QUERY" "$SCRIPT_PARAMETERS";
         if [[ $? -ne 0 ]]; then
           # The result request output should contain the error information

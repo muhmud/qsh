@@ -1,0 +1,23 @@
+#!/bin/bash
+
+QSH_BASE=~/.qsh
+QSH_CLIENTS=$QSH_BASE/clients
+QSH_TMP=/tmp/qsh
+
+OPERATION=$1
+PANE_ID=$2
+WINDOW_ID=$3
+CLIENT=$4
+
+QSH_BOOTSTRAP=$QSH_TMP/bootstrap.${PANE_ID}.${WINDOW_ID}
+
+if [[ "$OPERATION" == "create" ]]; then
+  # Setup a bootstrap
+  cat <<EOF > "$QSH_BOOTSTRAP"
+export QSH_CLIENT=$QSH_CLIENTS/$CLIENT
+EOF
+else
+   # Remove bootstrap
+   rm -f "$QSH_BOOTSTRAP";
+fi;
+
