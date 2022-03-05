@@ -30,7 +30,7 @@ if [[ -z "$QSH_PAGER" ]]; then
     QSH_PAGER="$(which less 2>/dev/null)";
     if [[ $? -eq 0 ]]; then
       QSH_PAGER="$QSH_PAGER -SinFX";
-    else 
+    else
       # Default pager: just use cat
       QSH_PAGER="$(which cat)";
     fi;
@@ -46,6 +46,8 @@ if [[ -f "$RESULT_REQUEST" ]] && [[ ! -f "$RESULT_REQUEST_OUTPUT" ]]; then
     cat $INPUT_FILE \
         | $QSH_PAGING_SCRIPTS/standard-cleanup \
         | $QSH_PAGING_SCRIPTS/column-cleanup \
+        | $QSH_PAGING_SCRIPTS/row-count-cleanup \
+        | $QSH_PAGING_SCRIPTS/blank-lines-cleanup \
         > "$RESULT_REQUEST_OUTPUT";
   elif [[ "$RESULT_REQUEST_PERFORM_CLEANUP" == "TRAILING_SPACE" ]]; then
     # Cleanup the results and trailing space only

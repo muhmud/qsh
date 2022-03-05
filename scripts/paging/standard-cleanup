@@ -4,10 +4,10 @@
 RESULT_REQUEST_CLEANUP=$(cat <<'EOF'
   BEGIN {
     value_now = 0;
-    line_count = 0; 
-  } 
+    line_count = 0;
+  }
 
-  { 
+  {
     line_count++;
     if (($0 ~ /^[+-_][-=+_]+[+-_]\s*$/ && line_count != 1)) {
       if (value_now != 0) {
