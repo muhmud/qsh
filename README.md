@@ -1,7 +1,7 @@
 # qsh
 Query SHell - improved querying from your terminal
 
-[![QSH](images/qsh.png)](https://asciinema.org/a/475682)
+![QSH](images/qsh.gif)
 
 Currently supports:
 * `sqlite3` (3.37+)
