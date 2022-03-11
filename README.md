@@ -58,84 +58,7 @@ Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 { "~/.qsh/editors/vim", as = "Qsh" }
 ```
 
-These are the default key mappings, which can be disabled by setting `g:qsh_enable_key_mappings` to `0`:
-
-```
-" Alt+e (for execute)
-vnoremap <silent> <unique> <Esc>e :call QshExecuteSelection()<CR>
-vnoremap <silent> <unique> <M-e> :call QshExecuteSelection()<CR>
-vnoremap <silent> <unique> <F5> :call QshExecuteSelection()<CR>
-inoremap <silent> <unique> <Esc>e <C-O>:call QshExecuteLine()<CR>
-inoremap <silent> <unique> <M-e> <C-O>:call QshExecuteLine()<CR>
-inoremap <silent> <unique> <F5> <C-O>:call QshExecuteLine()<CR>
-nnoremap <silent> <unique> <Esc>e :call QshExecuteLine()<CR>
-nnoremap <silent> <unique> <M-e> :call QshExecuteLine()<CR>
-nnoremap <silent> <unique> <F5> :call QshExecuteLine()<CR>
-
-" Alt+y
-inoremap <silent> <unique> <Esc>y <C-O>:call QshExecuteAll()<CR>
-inoremap <silent> <unique> <M-y> <C-O>:call QshExecuteAll()<CR>
-nnoremap <silent> <unique> <Esc>y :call QshExecuteAll()<CR>
-nnoremap <silent> <unique> <M-y> :call QshExecuteAll()<CR>
-
-" Alt+g (for go)
-inoremap <silent> <unique> <Esc>g <C-O>:call QshExecute()<CR>
-inoremap <silent> <unique> <M-g> <C-O>:call QshExecute()<CR>
-nnoremap <silent> <unique> <Esc>g :call QshExecute()<CR>
-nnoremap <silent> <unique> <M-g> :call QshExecute()<CR>
-
-" Alt+G
-inoremap <silent> <unique> <Esc>G <C-O>:call QshExecute("^---$" 0)<CR>
-inoremap <silent> <unique> <M-G> <C-O>:call QshExecute("^---$", 0)<CR>
-nnoremap <silent> <unique> <Esc>G :call QshExecute("^---$", 0)<CR>
-nnoremap <silent> <unique> <M-G> :call QshExecute("^---$", 0)<CR>
-
-" Alt+p (for prefix)
-vnoremap <silent> <unique> <Esc>p :call QshSetPrefix()<CR>
-vnoremap <silent> <unique> <M-p> :call QshSetPrefix()<CR>
-nnoremap <silent> <unique> <Esc>p :call QshUnsetPrefix()<CR>
-nnoremap <silent> <unique> <M-p> :call QshUnsetPrefix()<CR>
-inoremap <silent> <unique> <Esc>p <C-O>:call QshUnsetPrefix()<CR>
-inoremap <silent> <unique> <M-p> <C-O>:call QshUnsetPrefix()<CR>
-
-" Alt+d (for describe)
-vnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScriptVisually("describe")<CR>
-vnoremap <silent> <unique> <M-d> :call QshExecuteNamedScriptVisually("describe")<CR>
-nnoremap <silent> <unique> <Esc>d :call QshExecuteNamedScript("describe")<CR>
-nnoremap <silent> <unique> <M-d> :call QshExecuteNamedScript("describe")<CR>
-inoremap <silent> <unique> <Esc>d <C-O>:call QshExecuteNamedScript("describe")<CR>
-inoremap <silent> <unique> <M-d> <C-O>:call QshExecuteNamedScript("describe")<CR>
-
-" Alt+r (for rows)
-vnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScriptVisually("select-some")<CR>
-vnoremap <silent> <unique> <M-r> :call QshExecuteNamedScriptVisually("select-some")<CR>
-nnoremap <silent> <unique> <Esc>r :call QshExecuteNamedScript("select-some")<CR>
-nnoremap <silent> <unique> <M-r> :call QshExecuteNamedScript("select-some")<CR>
-inoremap <silent> <unique> <Esc>r <C-O>:call QshExecuteNamedScript("select-some")<CR>
-inoremap <silent> <unique> <M-r> <C-O>:call QshExecuteNamedScript("select-some")<CR>
-
-" Alt+t (for tidy)
-vnoremap <silent> <unique> <Esc>t :call QshExecuteNamedSnippetVisually("format")<CR>
-vnoremap <silent> <unique> <M-t> :call QshExecuteNamedSnippetVisually("format")<CR>
-
-" Alt+v
-vnoremap <silent> <unique> <Esc>v :call QshExecuteScriptVisually()<CR>
-vnoremap <silent> <unique> <M-v> :call QshExecuteScriptVisually()<CR>
-nnoremap <silent> <unique> <Esc>v :call QshExecuteScript()<CR>
-nnoremap <silent> <unique> <M-v> :call QshExecuteScript()<CR>
-inoremap <silent> <unique> <Esc>v <C-O>:call QshExecuteScript()<CR>
-inoremap <silent> <unique> <M-v> <C-O>:call QshExecuteScript()<CR>
-
-" Alt+Space
-vnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippetVisually()<CR>
-vnoremap <silent> <unique> <M-Space> :call QshExecuteSnippetVisually()<CR>
-nnoremap <silent> <unique> <Esc><Space> :call QshExecuteSnippet()<CR>
-nnoremap <silent> <unique> <M-Space> :call QshExecuteSnippet()<CR>
-inoremap <silent> <unique> <Esc><Space> <C-O>:call QshExecuteSnippet()<CR>
-inoremap <silent> <unique> <M-Space> <C-O>:call QshExecuteSnippet()<CR>
-
-
-```
+The default key mappings can be found [here](https://github.com/muhmud/qsh/blob/main/editors/vim/plugin/qsh.vim#L24-L95), which can be disabled by setting `g:qsh_enable_key_mappings` to `0`:
 
 You can add custom key mappings like this:
 
@@ -186,6 +109,8 @@ You should see the editor pane created, where you can now type in queries. A def
 ### Generic Mode
 
 If you invoke a tool that `qsh` does not know about, it will go into generic mode and will attempt to give you a usable querying experience, so you shouldn't need to do anything differently.
+
+![Generic](images/qsh-generic.gif)
 
 If your terminal looks messed up when the tool starts, try to use the REPL mode by specifying the `-r` option:
 
