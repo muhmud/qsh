@@ -58,7 +58,7 @@ Plug 'muhmud/qsh', { 'dir': '~/.qsh', 'branch': 'main', 'rtp': 'editors/vim' }
 { "~/.qsh/editors/vim", as = "Qsh" }
 ```
 
-The default key mappings can be found [here](https://github.com/muhmud/qsh/blob/main/editors/vim/plugin/qsh.vim#L24-L95), which can be disabled by setting `g:qsh_enable_key_mappings` to `0`.
+The default key mappings can be found [here](https://github.com/muhmud/qsh/blob/main/editors/vim/plugin/qsh.vim#L24-L95). You can disable them by setting `g:qsh_enable_key_mappings` to `0`.
 
 You can add custom key mappings like this:
 
