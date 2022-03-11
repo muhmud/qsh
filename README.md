@@ -306,6 +306,8 @@ You can either highlight the name of the table to be used with these scripts, ho
 
 Snippets are similar to scripts, however, the results are injected into the editor instead of being displayed as query results. You can also add your own custom snippets to `~/.qsh/clients/psql/snippets` for `postgresql`, for example.
 
+![Snippets](images/qsh-snippets.gif)
+
 The snippets currently available are:
 
 * General
