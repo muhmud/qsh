@@ -262,11 +262,9 @@ end;
 
 * `Alt-v` - Execute a script, which can be done with or without highlighting
 
-Scripts are shortcuts for SQL statements that return a consistent data set across different database servers. For example, to get a list of tables in the current database, whether `mysql` or `postgresql`, execute the following script:
+Scripts are shortcuts for SQL statements that return a consistent data set across different database servers. For example, to get a list of tables in the current database, whether `mysql` or `postgresql`, execute the following script(s):
 
-```
-tables
-```
+![Scripts](images/qsh-scripts.gif)
 
 You can also apply additional filtering & sorting to scripts (you must highlight the query for this to work):
 
