@@ -6,6 +6,12 @@ QSH_SCRIPTS=$QSH_BASE/scripts
 QSH_CONNECTIONS=$QSH_BASE/connections
 QSH_TMP=/tmp/qsh
 
+# Check that we are in a tmux session
+if [[ -z "${TMUX}" ]]; then
+  echo "You must use qsh from within a tmux session";
+  exit 1;
+fi;
+
 # Other environment details
 WINDOW_ID=$(tmux display-message -p '#I')
 PANE_ID=$(tmux display-message -p '#{pane_id}')
@@ -14,12 +20,6 @@ QSH_TTY=$(tty)
 # Other files
 QSH_SESSION=$QSH_TMP/session.${PANE_ID}.${WINDOW_ID}
 CLIENT_PANE=$QSH_TMP/client.${PANE_ID}
-
-# Check that we are in a tmux session
-if [[ -z "${TMUX}" ]]; then
-  echo "You must use qsh from within a tmux session";
-  exit -1;
-fi;
 
 # Cleanup any previous files
 if [[ -f "$CLIENT_PANE" ]]; then
@@ -76,13 +76,12 @@ function usage {
     echo;
     tree --prune --noreport "$QSH_CONNECTIONS";
   fi;
-  exit 0;
 }
 
 INVOKE=0
 FILE_TYPE=sql
 
-while getopts "sirf:t:c:" arg; do
+while getopts ":sirf:t:c:" arg; do
   case $arg in
     s)
       QSH_STARTUP_MODE=1
@@ -105,6 +104,9 @@ while getopts "sirf:t:c:" arg; do
     t)
       TERMINAL_TYPE=$OPTARG
       ;;
+    *)
+      usage
+      exit 1
   esac
 done
 
@@ -151,6 +153,7 @@ CONNECTION=$1
 shift 1;
 if [[ -z "$CONNECTION" ]]; then
   usage;
+  exit 0;
 fi;
 
 CONNECTION_JSON=$CONNECTION;
@@ -208,7 +211,7 @@ fi;
 
 if [ "$CLIENT" == "null" ] || [ "$INVOCATION" == "null" ]; then
   echo "invalid connection definition";
-  exit -1;
+  exit 1;
 fi;
 
 INVOCATION="$INVOCATION $*";
