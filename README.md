@@ -42,7 +42,7 @@ The following example does this for `Alt-q`:
 bind-key -n M-q run-shell ~/.qsh/bin/qsh-start
 ```
 
-You can currently use either `vim`/`nvim` or `micro`. Whichever you choose, make sure your `EDITOR`/`VISUAL` environment variable is set appropriately.
+You can currently use either `vim`/`nvim` or `micro`. Whichever you choose, make sure your `QSH_EDITOR` or `EDITOR`/`VISUAL` environment variable is set appropriately.
 
 ### vim/nvim
 
